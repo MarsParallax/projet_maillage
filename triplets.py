@@ -1,7 +1,13 @@
+"""Copyright (c) Jérôme Bonacchi et Homer Durand 2021"""
+
+
 from scipy.sparse import coo_matrix
 
 
 class Triplets:
+    """Un triplet de trois listes : valeurs, indices de lignes, indices de colonnes. 
+    """
+
     def __init__(self):
         self.data = ([], ([], []))
 
@@ -9,11 +15,20 @@ class Triplets:
         return str(self.data)
 
     def append(self, I, J, val):
+        """Ajoute le triplet [I, J, val] dans `self.data`.
+
+        Parameters
+        ----------
+        I : [type]
+            [description]
+        J : [type]
+            [description]
+        val : [type]
+            [description]
+        """
         self.data[0].append(val)
         self.data[1][0].append(I)
         self.data[1][1].append(J)
-        # Ajoute le triplet [I, J, val] dans self.data
-        # ...
 
 
 if __name__ == "__main__":

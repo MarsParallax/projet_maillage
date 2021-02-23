@@ -1,17 +1,22 @@
+"""Copyright (c) Jérôme Bonacchi et Homer Durand 2021"""
+
+
 import point
 
+
 class Triangle:
+    """Un simple triangle."""
 
     _counter = 0
     _name = "Triangle"
 
-    def __init__(self, points, physical_tag=-1)
+    def __init__(self, points, physical_tag=-1):
         self.id = Trangle._counter
         Triangle_counter += 1
         self.physical_tag = physical_tag
         assert len(points) == 3, "A triangle must have 3 points"
         self.points = points
-        self._area = 0.0
+        # self._area = 0.0
         self._set_area()
 
     def _set_area(self):

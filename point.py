@@ -1,6 +1,17 @@
+"""Copyright (c) Jérôme Bonacchi et Homer Durand 2021"""
+
+
 import numpy as np
 
+
 class Point:
+    """Un simple point.
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
 
     _counter = 0
     _name = "Point"

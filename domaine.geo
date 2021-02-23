@@ -1,3 +1,5 @@
+\\ Copyright (c) Jérôme Bonacchi et Homer Durand 2021
+
 h = 5;
 
 Point(1) = {0, 0, 0, h};
