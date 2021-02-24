@@ -9,7 +9,7 @@ import point
 class Segment:
     """Un simple segment."""
 
-    _counter = 0
+    _counter = 1
     _name = "Segment"
 
     def __init__(self, points, physical_tag=-1):

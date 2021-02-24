@@ -13,7 +13,7 @@ class Point:
         [description]
     """
 
-    _counter = 0
+    _counter = 1
     _name = "Point"
 
     def __init__(self, X, global_index=None):
@@ -25,4 +25,4 @@ class Point:
         return Point(self.X - other.X)
 
     def distance(self, other):
-        return np.linalg.norm(self - other)
+        return np.linalg.norm(self.X - other.X)
