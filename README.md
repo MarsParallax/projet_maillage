@@ -2,26 +2,41 @@
 
 par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité mathématiques appliquées et informatique
 
+- [Projet de maillage et éléments finis](#projet-de-maillage-et-éléments-finis)
+  - [TODO](#todo)
+  - [Exécution](#exécution)
+  - [Explications du problème](#explications-du-problème)
+  - [Résolution du problème](#résolution-du-problème)
+    - [Formulation faible du problème](#formulation-faible-du-problème)
+    - [Existence et unicité de la solution](#existence-et-unicité-de-la-solution)
+    - [Maillage triangulaire](#maillage-triangulaire)
+    - [Méthode de Galerkin](#méthode-de-galerkin)
+    - [Formulation matricielle](#formulation-matricielle)
+    - [Algorithme d'assemblage](#algorithme-dassemblage)
+    - [Calcul des *contributions élémentaires*](#calcul-des-contributions-élémentaires)
+  - [Implantation](#implantation)
+
 ## TODO
 
 - 1a
-  - [ ] gmshToMesh : construire la listes des éléments
-  - [ ] getElements, getPoints : faire un find, pour retourner les objets
+  - [x] gmshToMesh : construire la listes des éléments
+  - [x] getElements, getPoints : faire un find, pour retourner les objets
 - 1b
   - [x] modélisation en gmsh
 - 1c
-  - [ ] récrire le problème/la reformulation au propre
-  - [ ] faire le relèvement
+  - [ ] récrire le problème/la reformulation au propre : vérifier
 - 2
   - [ ] tester la modélisation gmsh
-  - [ ] matrice de rigidité : calculer les gradPhi et la jacobienne https://bthierry.pages.math.cnrs.fr/course-fem/lecture/elements-finis-triangulaires/contributions-elementaires/
+  - [ ] matrice de rigidité : calculer les [gradPhi et la jacobienne](https://bthierry.pages.math.cnrs.fr/course-fem/lecture/elements-finis-triangulaires/contributions-elementaires/)
+  - [ ] quadrature membre de droite
   - [ ] assemblage des matrices élémentaires
+  - [ ] revoir le reste des tache dans implémentation
 - 3
   - [ ] faire `main.py`
   - [ ] affichage graphique avec gradient de couleur
 - 4
   - [ ] commenter le code
-  - [ ] faire le readme : définir le bon Vh, vérifier la formulation
+  - [ ] faire le readme : quadrature membre de droite, s'occuper des TODO, expliquer l'implantation
 
 ## Exécution
 
@@ -42,8 +57,6 @@ python3 main.py
 ## Explications du problème
 
 [Lien vers le sujet du projet (visité en fevrier 2021)](https://bthierry.pages.math.cnrs.fr/course-fem/projet/2020-2021/)
-
-![le domaine](./2021-2021-flat.svg)
 
 <img src="https://bthierry.pages.math.cnrs.fr/course-fem/_images/2020-2021-flat.svg">
 
@@ -76,31 +89,30 @@ Nous souhaitons résoudre le problème $(\mathrm{P}_\text{initial})$ à l'aide d
 
 Considèrons l'espace de Hilbert $H^1 (\Omega)$ ainsi que $\gamma_{\Gamma_{\text{Rad}}}$ et $\gamma_{\Gamma_{\text{Fen}}}$ les applications trace de $H^1 (\Omega)$ sur $\mathrm{L}^2 (\Gamma_{\text{Rad}})$ et sur $\mathrm{L}^2 (\Gamma_{\text{Fen}})$ respectivement.
 Pour résoudre $(\mathrm{P}_\text{initial})$, nous nous ramenons au cas de conditions de Dirichlet homogènes en introduisant un relèvement $u_\gamma \in H^1_{T_c, T_f} (\Omega)$ de $T_f$ et de $T_c$, avec
-$$H^1_{T_c, T_f} (\Omega) := \{ u\in H^1 (\Omega)\ |\ \gamma_{\Gamma_{\text{Rad}}} u = T_c \wedge \gamma_{\Gamma_{\text{Fen}}} u = T_f \}.$$
+$$H^1_{T_c, T_f} (\Omega) := \{ u\in H^1 (\Omega)\ |\ \gamma_{\Gamma_{\text{Rad}}} u = T_c \land \gamma_{\Gamma_{\text{Fen}}} u = T_f \}.$$
 De plus, nous définissons
-$$H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) := \{ u\in H^1 (\Omega)\ |\ \gamma_{\Gamma_{\text{Rad}}} u = 0 \wedge \gamma_{\Gamma_{\text{Fen}}} u = 0 \}.$$
+$$H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) := \{ u\in H^1 (\Omega)\ |\ \gamma_{\Gamma_{\text{Rad}}} u = 0 \land \gamma_{\Gamma_{\text{Fen}}} u = 0 \}.$$
 Le problème $(\mathrm{P}_\text{initial})$ revient alors à chercher $u_r := u - u_\gamma \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ satisfaisant :
 $$
 (\mathrm{P}_\text{relèvement}) :
 \left\{
 \begin{array}{r c l l}
-  -\Delta u_r & = & 0 & (\Omega) \\
+  -\Delta u_r & = & \Delta u_\gamma & (\Omega) \\
   u_r & = & 0 & (\Gamma_{\text{Rad}})\\
   u_r & = & 0 & (\Gamma_{\text{Fen}})\\
-  \partial_n u_r & = & 0 & (\Gamma_{\text{Mur}})
+  \partial_n u_r & = & - \partial_n u_\gamma & (\Gamma_{\text{Mur}})
 \end{array}
 \right..
 $$
-Multiplions la première équation de $(\mathrm{P}_\text{relèvement})$ par des fonctions tests $v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$, intégrons sur $\Omega$ et appliquons le théorème de Green : **TODO laplacien de u_gamma**
+Multiplions la première équation de $(\mathrm{P}_\text{relèvement})$ par des fonctions tests $v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$, intégrons sur $\Omega$ et appliquons le théorème de Green :
 $$
 \begin{aligned}
-  -\Delta u_r = 0
-  & \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ -\Delta u_r \cdot v = 0 \\
-  & \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ -\int_{\Omega} \Delta u_r \cdot v  = 0\\
-  & \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ \int_{\Omega} \nabla u_r \cdot \nabla v - \int_{\Gamma} \partial_n u_r \cdot v = 0\\
-  & \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ \int_{\Omega} \nabla u_r \cdot \nabla v - \int_{\Gamma_{\text{Rad}}} \partial_n u_r \cdot \underbrace{v}_{=\ 0} - \int_{\Gamma_{\text{Fen}}} \partial_n u_r \cdot \underbrace{v}_{=\ 0} - \int_{\Gamma_{\text{Mur}}} \underbrace{\partial_n u_r}_{=\ 0} \cdot v = 0\\
-  & \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ \int_{\Omega} \nabla u_r \cdot \nabla v = 0\\
-  & \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ \int_{\Omega} \nabla u \cdot \nabla v - \int_{\Omega} \nabla u_\gamma \cdot \nabla v = 0 **TODO**
+  & -\Delta u_r = \Delta u_\gamma\\
+  \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& -\Delta u_r \cdot v = \Delta u_\gamma \cdot v \\
+  \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& -\int_{\Omega} \Delta u_r \cdot v  = \int_\Omega \Delta u_\gamma \cdot v\\
+  \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& \int_{\Omega} \nabla u_r \cdot \nabla v - \int_{\Gamma} \partial_n u_r \cdot v = \int_{\Omega} \nabla u_\gamma \cdot \nabla v - \int_{\Gamma} \partial_n u_\gamma \cdot v\\
+  \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& \int_{\Omega} \nabla u_r \cdot \nabla v - \int_{\Gamma_{\text{Rad}}} \partial_n u_r \cdot \underbrace{v}_{=\ 0} - \int_{\Gamma_{\text{Fen}}} \partial_n u_r \cdot \underbrace{v}_{=\ 0} - \int_{\Gamma_{\text{Mur}}} \underbrace{\partial_n u_r}_{=\ - \partial_n u_\gamma} \cdot v = - \int_{\Omega} \nabla u_\gamma \cdot \nabla v + \int_{\Gamma_{\text{Rad}}} \partial_n u_\gamma \cdot \underbrace{v}_{=\ 0} + \int_{\Gamma_{\text{Fen}}} \partial_n u_\gamma \cdot \underbrace{v}_{=\ 0} + \int_{\Gamma_{\text{Mur}}} \partial_n u_\gamma \cdot v\\
+  \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& \int_{\Omega} \nabla u_r \cdot \nabla v = - \int_{\Omega} \nabla u_\gamma \cdot \nabla v
 \end{aligned}
 $$
 Nous obtenons ainsi la formulation faible du problème :
@@ -108,8 +120,8 @@ $$
 (\mathrm{P_{FF}}) :
 \left\{
 \begin{array}{l}
-  \text{Trouver } u \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) \text{ tel que }\\
-  \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ a(u,v)=\ell(v)
+  \text{Trouver } u_r \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) \text{ tel que }\\
+  \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ a(u_r,v)=\ell(v)
 \end{array}
 \right.
 $$
@@ -117,9 +129,9 @@ avec
 $$
 \begin{array}{r r c l}
   a :& H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) \times H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) & \longrightarrow & \mathbb{R}\\
-  & (u,v) & \longmapsto & \displaystyle \int_{\Omega}\nabla u\cdot\nabla v **TODO**\\
-  \ell :& H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) & \longrightarrow & \mathbb{R}&&\\
-  & v & \longmapsto & 0 **TODO**
+  & (u,v) & \longmapsto & \displaystyle \int_{\Omega}\nabla u\cdot\nabla v\\
+  \ell :& H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) & \longrightarrow & \mathbb{R}&\\
+  & v & \longmapsto & \displaystyle - \int_{\Omega} \nabla u_\gamma \cdot \nabla v
 \end{array}
 $$
 
@@ -130,21 +142,21 @@ Tentons d'appliquer le théorème de Lax-Milgram à $(\mathrm{P_{FF}})$.
 1. $H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ est un espace de Hilbert
 2. $\ell(\cdot)$ est clairement linéaire (du fait de l'intégrale)
 3. $a(\cdot,\cdot)$  est bilinéaire, pour la même raison
-4. Continuité de $\ell(\cdot)$ : prenons une fonction $v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ : **TODO**
+4. Continuité de $\ell(\cdot)$ : $\forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ :
 $$
 \begin{aligned}
   | \ell(v) |
-  & = \left| \int_{\Omega} fv \right|\\
-  & \leqslant \| f \|_{\mathrm{L}^2(\Omega)} \| v \|_{\mathrm{L}^2(\Omega)} & \text{Cauchy-Schwarz}\\
-  & \leqslant \| f \|_{\mathrm{L}^2(\Omega)} \| v \|_{H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)} & \text{inégalité des normes} \\
+  & = \left| -\int_{\Omega} \nabla u_\gamma \cdot \nabla v \right|\\
+  & \leqslant \| \nabla u_\gamma \|_{\mathrm{L}^2(\Omega)} \| \nabla v \|_{\mathrm{L}^2(\Omega)} & \text{inégalité de Cauchy-Schwarz dans } \mathrm{L}^2(\Omega)\\
+  & \leqslant \| \nabla u_\gamma \|_{\mathrm{L}^2(\Omega)} \| v \|_{H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)} & \text{inégalité des normes} \\
 \end{aligned}
 $$
-5. Continuité de $a(\cdot,\cdot)$ : prenons deux fonctions $u$ et $v$ de $H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ :
+5. Continuité de $a(\cdot,\cdot)$ : $\forall (u, v) \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) \times H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ :
 $$
 \begin{aligned}
   | a(u, v) |
   & = \left| \int_{\Omega} \nabla u \cdot \nabla v \right|\\
-  & \leqslant  \| \nabla u \|_{\mathrm{L}^2(\Omega)} \| \nabla v \|_{\mathrm{L}^2(\Omega)} & \text{inégalité triangulaire dans }  \mathrm{L}^2(\Omega)\\
+  & \leqslant  \| \nabla u \|_{\mathrm{L}^2(\Omega)} \| \nabla v \|_{\mathrm{L}^2(\Omega)} & \text{inégalité de Cauchy-Schwarz dans } \mathrm{L}^2(\Omega)\\
   & \leqslant \| \nabla u \|_{H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)} \| \nabla v \|_{H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)} & \text{inégalité des normes} \\
 \end{aligned}
 $$
@@ -160,15 +172,15 @@ $$
 $$
 Toutes les conditions sont réunies : le problème admet une unique solution d'après le théorème de Lax-Milgram.
 
-### Maillage triangulaire (ou triangulation)
+### Maillage triangulaire
 
-Nous découpons maintenant le domaine en triangles pour obtenir un maillage triangulaire (ou triangulation) conforme de $\Omega$. Ce découpage n'est pas fait manuellement, nous utilisons [GMSH](https://gmsh.info) ([un tutoriel](https://bthierry.pages.math.cnrs.fr/tutorial/gmsh) est fourni par Bertrand Thierry). Une telle triangulation sera notée $\mathcal{T}_h := \{K_p,\ p \in \llbracket 1, N_t \rrbracket\}$, l'indice $h$ faisant référence à la *finesse de maillage*, que l'on définit par le plus grand diamètre des triangles :
+Nous découpons maintenant le domaine en triangles pour obtenir un maillage triangulaire conforme de $\Omega$. Ce découpage n'est pas fait manuellement, nous utilisons [GMSH](https://gmsh.info). Une telle triangulation sera notée $\mathcal{T}_h := \{K_p,\ p \in \llbracket 1, N_t \rrbracket\}$, l'indice $h$ faisant référence à la *finesse du maillage*, que l'on définit par le plus grand diamètre des triangles :
 $$
 h := \max_{K \in \mathcal{T}_h}(\mathrm{diam}\,(K)).
 $$
-Le diamètre d'un triangle est la distance maximale entre deux points du triangle. Nous notons de plus $\mathcal{S}_h$ l'ensemble des sommets de $\mathcal{T}_h$.
+Le diamètre d'un triangle est la distance maximale entre deux points du triangle. Nous notons de plus $\mathcal{A}_h$ et $\mathcal{S}_h$ les ensembles respectifs des arêtes et des sommets de $\mathcal{T}_h$.
 
-Nous rappelons qu'ici $\mathbb{P}^1$ est l'espace des polynômes réels de degré 1 sur $\omega \subset \mathbb{R}^2$ un ouvert, de dimension 3 :
+Nous rappelons qu'ici $\mathbb{P}^1$ est l'espace des polynômes réels de degré 1 sur $\omega \subset \mathbb{R}^2$ un ouvert :
 $$\mathbb{P}^1 (\omega) := \{ p : \omega \to \mathbb{R} \ |\ \exists !a,b,c \in \mathbb{R}\ /\ \forall (x,y) \in \omega, p(x,y) = a + bx + cy \}.
 $$
 Nous pouvons maintenant introduire l'espace fonctionnel $\mathbb{P}^1$-Lagrange sur $\Omega$, souvent abrégé $\mathbb{P}^1$ et noté $V_h$. Il contient les fonctions continues sur $\overline{\Omega}$ et linéaires sur chaque triangle de $\mathcal{T}_h$ :
@@ -176,25 +188,22 @@ $$
 V_h := \left\{ v_h \in \mathcal{C}^0 \left(\overline{\Omega}\right) \ |\ \forall K \in \mathcal{T}_h, v_h|_{K} \in \mathbb{P}^1(K) \right\}.
 $$
 En notant $N_S := \mathrm{card}\,(\mathcal{S}_h)$ le nombre de sommets du maillage $\mathcal{T}_h$, introduisons la famille des fonctions de forme $(\varphi_I)_{1\leqslant I \leqslant N_S}$ de $V_h$, qui sont nulles sur chaque sommet sauf un : le sommet $\mathrm{s}_I$. La famille $(\varphi_I)_{1\leqslant I \leqslant N_S}$ est une base de $V_h$, qui est alors de dimension $N_S$. Ainsi, nous pouvons écrire :
-$$u_h = \sum_{I\ =\ 1}^{N_S} u_I\varphi_I,$$
-avec $u_I = u_h(\mathrm{s}_I)$.
-
+$$\forall u_h \in V_h, \quad u_h = \sum_{I\ =\ 1}^{N_S} u_I\varphi_I, \quad \text{avec} \quad u_I = u_h(\mathrm{s}_I).$$
 L'espace $V_h$ n'est pas tout à fait celui qui nous intéresse car nous allons montrer que nous voulons une *discrétisation* de $H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$. C'est pourquoi nous posons :
 $$
-V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} := \{ v_h \in V_h\ |\ v_h|_{\Gamma_{\text{Rad}}} = 0 \wedge \ v_h|_{\Gamma_{\text{Fen}}} = 0 \}.
+V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} := \{ v_h \in V_h\ |\ v_h|_{\Gamma_{\text{Rad}}} = 0 \land \ v_h|_{\Gamma_{\text{Fen}}} = 0 \}.
 $$
-**TODO est-ce qu'on peut utiliser la même base ?**
 
 ### Méthode de Galerkin
 
 Nous avons montré que le théorème de Lax-Milgram s'applique à la formulation variationnelle $(\mathrm{P_{FF}})$, et donc, que le problème $(\mathrm{P}_\text{initial})$ admet une unique solution. **TODO: vrai?**
-Utilisons la méthode de Galerkin pour *approcher* l'espace $H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ par un espace de Hilbert (pour le même produit scalaire) $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} \subset H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$, de *dimension finie*. La formulation faible $(\mathrm{P_{FF}})$ est alors résolue dans $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$ uniquement. Ainsi, le problème se récrit :
+Utilisons la méthode de Galerkin pour *approcher* l'espace $H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ par un espace de Hilbert (pour le même produit scalaire) $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} \subset H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$, de *dimension finie*. La formulation faible $(\mathrm{P_{FF}})$ est alors résolue dans $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$. Ainsi, le problème se récrit :
 $$
 (\mathrm{P_{approché}}) :
 \left\{
 \begin{array}{l}
-  \text{Trouver } u_h \in V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} \text{ tel que}\\
-  \forall v_h \in V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}},\ a(u_h, v_h) = \ell(v_h)
+  \text{Trouver } u_r^h \in V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} \text{ tel que}\\
+  \forall v_h \in V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}},\ a(u_r^h, v_h) = \ell(v_h)
 \end{array}
 \right..
 $$
@@ -202,11 +211,11 @@ Le problème *approché* $(\mathrm{P_{approché}})$ admet une unique solution. E
 
 En élément finis $\mathbb{P}^1$, un relèvement de $T_c$ et de $T_f$ est la fonction $u_{\gamma}^h$ de $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$ telle que
 $$
-u_{\gamma}^h (\mathrm{s}_j) =
+u_{\gamma}^h (\mathrm{s}_J) =
 \left\{
 \begin{array}{l l}
-  T_c & \text{si }\mathrm{s}_j\in\Gamma_{\text{Rad}},\\
-  T_f & \text{si }\mathrm{s}_j\in\Gamma_{\text{Fen}},\\
+  T_c & \text{si }\mathrm{s}_J\in\Gamma_{\text{Rad}},\\
+  T_f & \text{si }\mathrm{s}_J\in\Gamma_{\text{Fen}},\\
   0 & \text{sinon.}
 \end{array}
 \right.
@@ -215,81 +224,67 @@ Cette fonction est un relèvement de l'interpolée de $T_c$ et de $T_f$ dans $V^
 
 ### Formulation matricielle
 
-Grâce à $(\mathrm{P_{approché}})$ et les propriétés des applications et de l'espace $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$, nous pouvons récrire le problème comme la résolution du système linéaire :
-$$\mathrm{\bf A} \mathrm{\bf u}_h = \mathrm{\bf b}.$$
-Les coefficients de la matrice $\mathrm{\bf A}$ et des vecteurs $\mathrm{\bf u}_h$ et $\mathrm{\bf b}$ sont donnés par :
+Grâce à $(\mathrm{P_{approché}})$, les propriétés des applications $a(\cdot,\cdot)$ et $\ell(\cdot)$ et de l'espace $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$, nous pouvons récrire ce problème comme la résolution du système linéaire :
+$$
+(\mathrm{P_{matriciel}}) : \mathrm{\bf A} \mathrm{\bf u}_r^h = \mathrm{\bf b}.
+$$
+Les coefficients de la matrice $\mathrm{\bf A}$ et des vecteurs $\mathrm{\bf u}_r^h$ et $\mathrm{\bf b}$ sont donnés par :
 $$
 \begin{aligned}
-    \mathrm{\bf A} & = (\mathrm{A}_{I,J})_{1 \leqslant I,J \leqslant N_S}, & \mathrm{A}_{I,J} &= a(\varphi_J,\varphi_J) = \int_{\Omega}\nabla \varphi_J\cdot\nabla\varphi_I **TODO**\\
-    \mathrm{\bf u}_h & = (u_I)_{1 \leqslant I \leqslant N_S} & &\\
-    \mathrm{\bf b} & = (\mathrm{b}_I)_{1 \leqslant I \leqslant N_S}, & \mathrm{b}_I & = \ell(\varphi_I) = 0 **TODO**
+    \mathrm{\bf A} & = (\mathrm{A}_{I,J})_{1 \leqslant I,J \leqslant N_S}, & \mathrm{A}_{I,J} &= a(\varphi_J,\varphi_J) = \int_{\Omega}\nabla \varphi_J\cdot\nabla\varphi_I\\
+    \mathrm{\bf u}_r^h & = ({u_r^h}_I)_{1 \leqslant I \leqslant N_S} & &\\
+    \mathrm{\bf b} & = (\mathrm{b}_I)_{1 \leqslant I \leqslant N_S}, & \mathrm{b}_I & = \ell(\varphi_I) = - \int_{\Omega} \nabla u_\gamma^h \cdot \nabla \varphi_I
 \end{aligned}
 $$
-
 Nous séparons les degrés de liberté en deux sous-ensembles (quitte à renuméroter) :
 
-1. Ceux qui appartiennent à $\Omega$ ou à $\Gamma_{\text{Mur}}$ : nous les noterons avec un indice $I$ (pour Intérieur) ;
-2. Ceux qui appartiennent à $\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}$, ils seront notés avec un indice $D$. Le système linéaire devient :
+1. Ceux qui appartiennent à $\Omega \cup \Gamma_{\text{Mur}}$ : nous les notons avec un indice $\mathcal{I}$ ;
+2. Ceux qui appartiennent à $\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}$, ils sont notés avec un indice $\mathcal{D}$.
+
+Le système $(\mathrm{P_{matriciel}})$ devient :
 $$
-\mathrm{\bf A} \mathrm{\bf u}_h = \mathrm{\bf b} \iff \left(
+\mathrm{\bf A} \mathrm{\bf u}_r^h = \mathrm{\bf b} \iff \left(
 \begin{array}{c c}
-  \mathrm{\bf A}_{I,I}  & \mathrm{\bf A}_{I, D}\\
-  \mathrm{\bf A}_{D, I} & \mathrm{\bf A}_{D,D}
+  \mathrm{\bf A}_{\mathcal{I},\mathcal{I}}  & \mathrm{\bf A}_{\mathcal{I}, \mathcal{D}}\\
+  \mathrm{\bf A}_{\mathcal{D}, \mathcal{I}} & \mathrm{\bf A}_{\mathcal{D},\mathcal{D}}
 \end{array}
 \right) \left(
 \begin{array}{c}
-  \mathrm{\bf u}_I\\
-  \mathrm{\bf u}_D
+  {\mathrm{\bf u}_r^h}_\mathcal{I}\\
+  {\mathrm{\bf u}_r^h}_\mathcal{D}
 \end{array}
 \right) =  \left(
 \begin{array}{c}
-  \mathrm{\bf b}_I\\
-  \mathrm{\bf b}_D
+  \mathrm{\bf b}_\mathcal{I}\\
+  \mathrm{\bf b}_\mathcal{D}
 \end{array}
 \right)
 $$
-Nous notons $\mathrm{\bf u}_{\gamma}^h$ le vecteur de même taille que $\mathrm{\bf b}_D$ contenant les évaluation de $u_{\gamma}^h (\mathrm{s}_I)$ avec $\mathrm{s}_I \in \Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}$. Appliquer la condition de Dirichlet hétérogène se traduit par :
+Appliquer la condition de Dirichlet homogène se traduit par :
 $$
 \left(
 \begin{array}{c c}
-  \mathrm{\bf A}_{I,I} & \mathrm{\bf A}_{I,D}\\
-  \mathrm{\bf 0} & \mathrm{\bf I}_{D,D}
+  \mathrm{\bf A}_{\mathcal{I},\mathcal{I}} & \mathrm{\bf A}_{\mathcal{I},\mathcal{D}}\\
+  \mathrm{\bf 0} & \mathrm{\bf \mathcal{I}}_{\mathcal{D},\mathcal{D}}
 \end{array}
 \right)
 \left(
 \begin{array}{c}
-  \mathrm{\bf u}_I\\
-  \mathrm{\bf u}_D
+  {\mathrm{\bf u}_r^h}_\mathcal{I}\\
+  {\mathrm{\bf u}_r^h}_\mathcal{D}
 \end{array}
 \right)  =   \left(
 \begin{array}{c}
-  \mathrm{\bf b}_I\\
-  \mathrm{\bf u}_{\gamma}^h
+  \mathrm{\bf b}_\mathcal{I}\\
+  \mathrm{\bf 0}
 \end{array}
 \right).
 $$
-La matrice obtenue est non symétrique, ce qui peut poser des problèmes (augmentation du coût de stockage mémoire, etc.). Une astuce simple consiste à récrire le système sous la forme suivante :
+Le système $(\mathrm{P_{matriciel}})$ se simplifie alors en :
 $$
-\left(
-\begin{array}{c c}
-  \mathrm{\bf A}_{I,I} & \mathrm{\bf 0}\\
-  \mathrm{\bf 0} & \mathrm{\bf I}_{D,D}
-\end{array}
-\right)
-\left(
-\begin{array}{c}
-  \mathrm{\bf u}_I\\
-  \mathrm{\bf u}_D
-\end{array}
-\right)  =   \left(
-\begin{array}{c}
-  \mathrm{\bf b}_I - \mathrm{\bf A}_{I,D} \mathrm{\bf u}_{\gamma}^h\\
-  \mathrm{\bf u}_{\gamma}^h
-\end{array}
-\right).
+(\mathrm{P'_{matriciel}}) : 
+\mathrm{\bf A}_{\mathcal{I},\mathcal{I}} {\mathrm{\bf u}_r^h}_\mathcal{I} = \mathrm{\bf b}_\mathcal{I}.
 $$
-Nous pouvons aussi nous contenter de résoudre un système plus petit :
-$$\mathrm{\bf A}_{I,I} \mathrm{\bf u}_I = \mathrm{\bf b}_I - \mathrm{\bf A}_{I,D} \mathrm{\bf u}_{\gamma}^h.$$
 
 ### Algorithme d'assemblage
 
@@ -301,18 +296,28 @@ $$
   & = \sum_{p\ =\ 1}^{N_t}\sum_{I\ =\ 1}^{N_s}\sum_{J\ =\ 1}^{N_s} \underbrace{\int_{K_p}\nabla \varphi_J \cdot\nabla \varphi_I}_{\text{contribution élémentaire}} \mathrm{\bf e}_I^\top\mathrm{\bf e}_J\\
 \end{aligned}
 $$
-où $\mathrm{\bf e}_I$ est le vecteur de la base canonique de $\mathbb{R}^{N_s}$.
+où $\mathrm{\bf e}_I$ est le vecteur de la base canonique de $\mathbb{R}^{N_s}$. Idem pour $\mathrm{\bf b}$ :
+$$
+\begin{aligned}
+  \mathrm{\bf b}
+  & = \sum_{I\ =\ 1}^{N_s} l(\varphi_I) \mathrm{\bf e}_I\\
+  & = \sum_{p\ =\ 1}^{N_t}\sum_{I\ =\ 1}^{N_s} \underbrace{- \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_I}_{\text{contribution élémentaire}} \mathrm{\bf e}_I\\
+\end{aligned}
+$$
 
-Nous devons maintenant travailler localement dans chaque triangle. Pour cela, nous avons besoin d'introduire une numérotation locale de chaque sommet une fonction $\mathrm{locToGlob}$ (*Local To Global*) permettant de basculer du local vers le global telle que, pour $p \in \llbracket 1,N_t \rrbracket$ et $i \in \llbracket 1,3 \rrbracket$ :
+Nous devons maintenant travailler localement dans chaque triangle. Pour cela, nous avons besoin d'introduire une numérotation locale de chaque sommet et utilisons une fonction $\mathrm{locToGlob}$ (*Local To Global*) permettant de basculer du local vers le global telle que, pour $p \in \llbracket 1,N_t \rrbracket$ et $i \in \llbracket 1,3 \rrbracket$ :
 $$\mathrm{locToGlob}\,(p,i) = I \iff \mathrm{s}_i^p = \mathrm{s}_I.$$
 Nous distinguerons la numérotation globale par des lettres capitales ($I$, $J$) et la numérotation locale par des minuscules ($i$, $j$). Nous introduisons aussi les fonctions de forme locales :
 $$ \varphi_i^p = \varphi_{\mathrm{locToGlob}\,(p,i)}|_{K_p}.$$
 Utilisons ces nouvelles notations en ramenant la somme sur tous les sommets du maillage à uniquement les sommets du triangle considéré :
 $$
-\mathrm{\bf A} = \sum_{p=1}^{N_t}\sum_{i=1}^{3}\sum_{j=1}^{3} \int_{K_p}\nabla \varphi_j^p \cdot\nabla \varphi_i^p\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}^\top\mathrm{\bf e}_{\mathrm{locToGlob}\,(p,j)}.
+\begin{aligned}
+  \mathrm{\bf A} &= \sum_{p=1}^{N_t}\sum_{i=1}^{3}\sum_{j=1}^{3} \int_{K_p}\nabla \varphi_j^p \cdot\nabla \varphi_i^p\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}^\top\mathrm{\bf e}_{\mathrm{locToGlob}\,(p,j)}\\
+  \mathrm{\bf b} & = \sum_{p\ =\ 1}^{N_t}\sum_{i\ =\ 1}^{3} \underbrace{- \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_i^p}_{\text{contribution élémentaire}}\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}.
+\end{aligned}
 $$
 
-Le pseudo-code de l'algorithme d'assemblage :
+Voici le pseudo-code de l'algorithme d'assemblage :
 
 ```
 A = 0
@@ -324,38 +329,14 @@ For p = 1:N_t
       J = locToGlob(p,j)
       A(I,J) += ∫_{K_p}(∇ϕ_j^p·∇ϕ_i^p)
     EndFor
-    b(I) += l_p(ϕ_i^p)
+    b(I) += ∫_{K_p}(∇u_ɣ^h·∇ϕ_i^p)
   EndFor
 EndFor
 ```
 
-<!-- #### Calcul des matrices élémentaires **TODO**
+### Calcul des *contributions élémentaires*
 
-Dans le triangle de référence $\widehat{K}$, la matrice de rigidité élémentaire $\mathrm{\bf \widehat{D}}$ a pour expression
-$$
-\mathrm{\bf \widehat{D}} = \frac{1}{2}
-\left(
-\begin{array}{l l c}
-  2 & -1 & -1 \\
-  -1 & 1 & 0 \\
-  -1 & 0 & 1
-\end{array}
-\right)
-$$
-Les coefficients de la matrice de rigidité élémentaire $\mathrm{\bf D}^e_p = ((\mathrm{D}^e{p})_{i,j})_{1\leq i,j\leq 3}$ sont obtenus pas la relation suivante :
-$$
-\begin{aligned}
-  (\mathrm{D}^e_p)_{i,j} &= \int_{K_p}\nabla \varphi_j^p \cdot \nabla\varphi_i^p,\\
-  &= | K_p | (\nabla\widehat{\varphi}_j)^T \left( \left(\left(J_p^\top \right)^{-1} \right)^\top \left( J_p^\top \right)^{-1} \right) \nabla\widehat{\varphi}_i. **TODO**
-\end{aligned}
-$$ -->
-
-Les coefficients sont obtenus pas la relation suivante :
-$$
-\int_{K_p}\nabla \varphi_j^p \cdot \nabla\varphi_i^p = | K_p | (\nabla\widehat{\varphi}_j)^\top \left( \left(\left(J_p^\top \right)^{-1} \right)^\top \left( J_p^\top \right)^{-1} \right) \nabla\widehat{\varphi}_i.
-$$
- **TODO**
-avec $J_p$ la matrice jacobienne de la tranformation des coordonnées de $\widehat{K}$ en celles de $K_p$ et où les gradients des fonctions de forme sur $\widehat{K}$ $\widehat{\varphi}_i$ sont donnés par :
+Pour calculer les *contributions élémentaires*, nous devons considérer le triangle de référence $\widehat{K}$ et les fonctions de forme $\widehat{\varphi}_i \in \mathbb{P}^1(\widehat{K})$. Leur gradient sont donnés par :
 $$
 \nabla\widehat{\varphi}_0 =
 \begin{pmatrix}
@@ -376,6 +357,61 @@ $$
   1
 \end{pmatrix}.
 $$
+De plus, il faut considérer $\mathrm{\bf J}_p$ la matrice jacobienne de la tranformation des coordonnées de $\widehat{K}$ en celles de $K_p$ qui est donnée par :
+$$
+\mathrm{\bf J}_p = 
+\left(
+\begin{array}{c c}
+  x_{2}^{p} - x_{1}^{p} & x_{3}^{p} - x_{1}^{p}\\
+  y_{2}^{p} - y_{1}^{p} & y_{3}^{p} - y_{1}^{p}
+\end{array}
+\right),
+$$
+avec $\mathrm{s}_i^p := (x_i^p, y_i^p)$, et son déterminant vaut
+$$ | \det(\mathrm{\bf J}_{p})| = 2|K_p| \neq 0.$$
+
+Les coefficients $\mathrm{A}_{I,J}$ sont obtenus pas la relation suivante :
+$$
+\mathrm{A}_{I,J} = \int_{K_p}\nabla \varphi_j^p \cdot \nabla\varphi_i^p = | K_p | (\nabla\widehat{\varphi}_j)^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i
+$$
+avec $\mathrm{\bf B}_p = \left( \mathrm{\bf J}_p^\top\right)^{-1}$.
+
+En notant,
+$$
+\mathcal{T}^h_{\mathcal{I}} := \{ K \in \mathcal{T}_h\ |\ K \cap (\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}) = \empty\}
+$$
+l'ensemble des triangles qui ne sont pas en contact avec le bord $(\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}})$, nous pouvons remarquer que, de part la définition de $u_\gamma^h$, son support est :
+$$
+\mathrm{supp}\,(u_\gamma^h) \subseteq \mathcal{T}_h \backslash \mathcal{T}^h_{\mathcal{I}}.
+$$
+Ainsi, $\forall I\ /\ \mathrm{s}_I \in K, K \in \mathcal{T}^h_{\mathcal{I}}, \mathrm{b}_I = 0$.
+
+___
+**TODO**
+Déterminons les coefficients pour les autres I
+$$\mathrm{\bf b} = \sum_{p\ =\ 1}^{N_t}\sum_{i\ =\ 1}^{3} \underbrace{- \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_i^p}_{\text{contribution élémentaire}}\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}$$
+
+nous ne pourrons certainement pas calculer explicitement ce terme, nous devons approcher cette intégrale à l'aide d'une formule de quadrature en passant au triangle de référence :
+$$
+\begin{aligned}
+  \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_i^p
+  & = | \det(\mathrm{\bf J}_p) | \int_{\widehat{K}} \left( \nabla u_\gamma^h (\mathrm{\bf x}(\xi,\eta)) \right)^\top \mathrm{\bf B}_p^\top \nabla \widehat{\varphi}_i(\xi,\eta)\\
+  & \simeq | \det(\mathrm{\bf J}_p) | \sum_{m\ =\ 1}^{M} w_m \left( \nabla u_\gamma^h (\mathrm{\bf x}(\xi_m,\eta_m)) \right)^\top \mathrm{\bf B}_p^\top \nabla \widehat{\varphi}_i(\xi_m,\eta_m).
+\end{aligned}
+$$
+Les points $(\xi_m,\eta_m)$ sont les points de quadrature et les quantités $w_m \in \mathbb{R}$ les poids associés. Notons que le point $x(\xi_m,\eta_m)$ s'obtient par l'expression :
+$$\mathrm{\bf x}(\xi_m,\eta_m) = \sum_{i\ =\ 1}^3 \mathrm{s}_i^p \widehat{\psi}_i (\xi_m,\eta_m)$$
+
+$$\mathrm{\bf b} = - \sum_{p\ =\ 1}^{N_t} | \det(\mathrm{\bf J}_p) | \sum_{i\ =\ 1}^{3} \left( \sum_{m\ =\ 1}^{M} w_m \left( \nabla u_\gamma^h (\mathrm{\bf x}(\xi_m,\eta_m)) \right)^\top \mathrm{\bf B}_p^\top \nabla \widehat{\varphi}_i(\xi_m,\eta_m)\right)\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}$$
+
+Utilisons la règle de Hammer :
+
+| $\xi_m$ | $\eta_m$ | $w_m$ |
+|---------|----------|-------|
+| 1/6     | 1/6      | 1/6   |
+| 4/6     | 1/6      | 1/6   |
+| 1/6     | 4/6      | 1/6   |
+___
 
 ## Implantation
 
