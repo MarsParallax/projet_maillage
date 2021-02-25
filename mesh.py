@@ -44,6 +44,9 @@ class Mesh:
             point = Point(np.array([x, y]), tag)
             self.points.append(point)
 
+        #Set number of points of mesh
+        self.nbPoints = len(X)
+
         # Fill self.segments, self.triangles
         for dim, physical_tag in gmsh.model.getPhysicalGroups():
             for entity_tag in gmsh.model.getEntitiesForPhysicalGroup(dim, physical_tag):

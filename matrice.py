@@ -2,12 +2,13 @@
 
 
 from itertools import product
-
 from triplets import Triplets
+import mesh
+import numpy as np
+from scipy.sparse import coo_matrix
 
-
-def assemblage(mesh):
-    """Assembles the global matrix.
+def assemblage(mesh) :
+	""" Assemble A
 
     Parameters
     ----------
@@ -17,68 +18,22 @@ def assemblage(mesh):
     Returns
     -------
     Triplets
-        the matrix as a Triplets object
+        matrix A
+    numpy.array
+    	matrix B
     """
-    A = Triplets()
-    for triangle in mesh.triangles:
-        # Mp = mass_elem(triangle)
-        Dp = stiffness_elem(triangle)
-        for i in range(2):
-            I = local_to_global(triangle, i)
-            for j in range(2):
-                J = local_to_global(triangle, j)
-                A.append(I, J, Dp[i, j])
-    return A
+	A = Triplets()
+	b = np.zeros((mesh.nbPoints))
+	for p in mesh.get_elements(2, -1) :
+		Mp = p.matrice_rigidite_elem()
+		for i in range(3) :
+			I = local_to_global(p,i)
+			for j in range(3) :
+				J = local_to_global(p,j)
+				A.append(I, J, Mp[i][j])
+			#b[I] += 0
+	return A, b
 
-
-def mass_elem(triangle):
-    """Computes the elementary mass matrix on a triangle
-
-    Parameters
-    ----------
-    triangle : Triangle
-        the triangle on which the matrix is computed
-
-    Returns
-    -------
-    Triplets (length = 9)
-        the elementary mass matrix
-    """
-    M = Triplets()
-    area = triangle.area()
-    for (i, j) in product(range(2), repeat=2):
-        if i == j:
-            M.append(i, j, area / 6)
-        else:
-            M.append(i, j, area / 12)
-    return M
-
-
-def stiffness_elem(triangle):
-    """Computes the elementary stiffness matrix on a triangle
-
-    Parameters
-    ----------
-    triangle : Triangle
-        the triangle on which the matrix is computed
-
-    Returns
-    -------
-    Triplets (length = 9)
-        the elementary stiffness matrix
-    """
-    D = Triplets()
-    area = triangle.area()
-    for (i, j) in product(range(2), repeat=2):
-        if i == j:
-            D.append(i, j, 0)  # TODO
-        else:
-            D.append(i, j, 0)  # TODO
-    return M
-
-
-def mass(mesh, dim, physical_tag, triplets):  # TODO
-    return triplets
 
 
 def local_to_global(triangle, i):
@@ -130,3 +85,12 @@ def dirichlet(mesh, dim, physical_tag, g, triplets, b):
     for i in I:
         triplets.append(i, i, 1)
         b[i] = g(points[i].X)
+
+
+if __name__ == '__main__':
+    mesh = mesh.Mesh()
+    mesh.gmsh_to_mesh("domaine.msh")
+    A, _ = assemblage(mesh) 
+    A_coo = coo_matrix(A.data).tocsr()
+    U = np.zeros((A_coo.get_shape()[0]))+1
+    print(A_coo.dot(U))
