@@ -33,3 +33,12 @@ class Triangle:
 
     def jac(self):
         return 2 * self._area
+
+    def passage(self) :
+        x1 = self.points[0].X[0]
+        x2 = self.points[1].X[0]
+        x3 = self.points[2].X[0]
+        y1 = self.points[0].X[1]
+        y2 = self.points[1].X[1]
+        y3 = self.points[2].X[1]
+        return 1/self.jac() * np.array([[y3 - y1, y1 - y2], [x1 - x3, x2 - x1]])
