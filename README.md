@@ -24,19 +24,26 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
 - 1b
   - [x] modélisation en gmsh
 - 1c
-  - [ ] récrire le problème/la reformulation au propre : vérifier
-- 2
-  - [ ] tester la modélisation gmsh
+  - [x] récrire le problème/la reformulation au propre
+- 2a
+  - [ ] tester la modélisation gmsh : **triangles plats**
+- 2b
   - [ ] matrice de rigidité : calculer les [gradPhi et la jacobienne](https://bthierry.pages.math.cnrs.fr/course-fem/lecture/elements-finis-triangulaires/contributions-elementaires/)
-  - [ ] quadrature membre de droite
-  - [ ] assemblage des matrices élémentaires
-  - [ ] revoir le reste des tache dans implémentation
-- 3
+  - [ ] vérifier la matrice de rigidité avec DU=0
+- 2c
+  - [ ] ~~calculer la quadrature du membre de droite~~
+- 2d
+  - [ ] faire l'assemblage des matrices élémentaires
+- 2e
+  - [ ] faire locToGlob : je sais pas comment faire
+- 2f
+  - [ ] revoir le reste des taches dans l'implémentation
+- 3a
   - [ ] faire `main.py`
   - [ ] affichage graphique avec gradient de couleur
 - 4
   - [ ] commenter le code
-  - [ ] faire le readme : quadrature membre de droite, s'occuper des TODO, expliquer l'implantation
+  - [ ] faire le readme : s'occuper des TODO, expliquer l'implantation
 
 ## Exécution
 
@@ -110,7 +117,7 @@ $$
   & -\Delta u_r = \Delta u_\gamma\\
   \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& -\Delta u_r \cdot v = \Delta u_\gamma \cdot v \\
   \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& -\int_{\Omega} \Delta u_r \cdot v  = \int_\Omega \Delta u_\gamma \cdot v\\
-  \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& \int_{\Omega} \nabla u_r \cdot \nabla v - \int_{\Gamma} \partial_n u_r \cdot v = \int_{\Omega} \nabla u_\gamma \cdot \nabla v - \int_{\Gamma} \partial_n u_\gamma \cdot v\\
+  \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& \int_{\Omega} \nabla u_r \cdot \nabla v - \int_{\Gamma} \partial_n u_r \cdot v = - \int_{\Omega} \nabla u_\gamma \cdot \nabla v + \int_{\Gamma} \partial_n u_\gamma \cdot v\\
   \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& \int_{\Omega} \nabla u_r \cdot \nabla v - \int_{\Gamma_{\text{Rad}}} \partial_n u_r \cdot \underbrace{v}_{=\ 0} - \int_{\Gamma_{\text{Fen}}} \partial_n u_r \cdot \underbrace{v}_{=\ 0} - \int_{\Gamma_{\text{Mur}}} \underbrace{\partial_n u_r}_{=\ - \partial_n u_\gamma} \cdot v = - \int_{\Omega} \nabla u_\gamma \cdot \nabla v + \int_{\Gamma_{\text{Rad}}} \partial_n u_\gamma \cdot \underbrace{v}_{=\ 0} + \int_{\Gamma_{\text{Fen}}} \partial_n u_\gamma \cdot \underbrace{v}_{=\ 0} + \int_{\Gamma_{\text{Mur}}} \partial_n u_\gamma \cdot v\\
   \implies \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),& \int_{\Omega} \nabla u_r \cdot \nabla v = - \int_{\Omega} \nabla u_\gamma \cdot \nabla v
 \end{aligned}
@@ -142,16 +149,16 @@ Tentons d'appliquer le théorème de Lax-Milgram à $(\mathrm{P_{FF}})$.
 1. $H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ est un espace de Hilbert
 2. $\ell(\cdot)$ est clairement linéaire (du fait de l'intégrale)
 3. $a(\cdot,\cdot)$  est bilinéaire, pour la même raison
-4. Continuité de $\ell(\cdot)$ : $\forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ :
+4. Continuité de $\ell(\cdot)$ :
 $$
 \begin{aligned}
-  | \ell(v) |
+  \forall v \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega),\ | \ell(v) |
   & = \left| -\int_{\Omega} \nabla u_\gamma \cdot \nabla v \right|\\
   & \leqslant \| \nabla u_\gamma \|_{\mathrm{L}^2(\Omega)} \| \nabla v \|_{\mathrm{L}^2(\Omega)} & \text{inégalité de Cauchy-Schwarz dans } \mathrm{L}^2(\Omega)\\
   & \leqslant \| \nabla u_\gamma \|_{\mathrm{L}^2(\Omega)} \| v \|_{H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)} & \text{inégalité des normes} \\
 \end{aligned}
 $$
-5. Continuité de $a(\cdot,\cdot)$ : $\forall (u, v) \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) \times H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ :
+5. Continuité de $a(\cdot,\cdot)$ : $\forall (u, v) \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega) \times H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$,
 $$
 \begin{aligned}
   | a(u, v) |
@@ -160,7 +167,7 @@ $$
   & \leqslant \| \nabla u \|_{H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)} \| \nabla v \|_{H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)} & \text{inégalité des normes} \\
 \end{aligned}
 $$
-6. Coercivité de $a(\cdot, \cdot)$ : prenons une fonction $u \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ :
+6. Coercivité de $a(\cdot, \cdot)$ : $\forall u \in H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$,
 $$
 \begin{aligned}
   a(u,u)
@@ -282,7 +289,7 @@ $$
 $$
 Le système $(\mathrm{P_{matriciel}})$ se simplifie alors en :
 $$
-(\mathrm{P'_{matriciel}}) : 
+(\mathrm{P'_{matriciel}}) :
 \mathrm{\bf A}_{\mathcal{I},\mathcal{I}} {\mathrm{\bf u}_r^h}_\mathcal{I} = \mathrm{\bf b}_\mathcal{I}.
 $$
 
@@ -305,9 +312,9 @@ $$
 \end{aligned}
 $$
 
-Nous devons maintenant travailler localement dans chaque triangle. Pour cela, nous avons besoin d'introduire une numérotation locale de chaque sommet et utilisons une fonction $\mathrm{locToGlob}$ (*Local To Global*) permettant de basculer du local vers le global telle que, pour $p \in \llbracket 1,N_t \rrbracket$ et $i \in \llbracket 1,3 \rrbracket$ :
+Afin de réduire le nombre de termes sommés, nous devons maintenant travailler localement dans chaque triangle. Pour cela, nous avons besoin d'introduire une numérotation locale de chaque sommet et utilisons une fonction $\mathrm{locToGlob}$ (*Local To Global*) permettant de basculer de l'indice local vers l'indice global telle que, pour $p \in \llbracket 1,N_t \rrbracket$ et $i \in \llbracket 1,3 \rrbracket$ :
 $$\mathrm{locToGlob}\,(p,i) = I \iff \mathrm{s}_i^p = \mathrm{s}_I.$$
-Nous distinguerons la numérotation globale par des lettres capitales ($I$, $J$) et la numérotation locale par des minuscules ($i$, $j$). Nous introduisons aussi les fonctions de forme locales :
+Nous introduisons aussi les fonctions de forme locales :
 $$ \varphi_i^p = \varphi_{\mathrm{locToGlob}\,(p,i)}|_{K_p}.$$
 Utilisons ces nouvelles notations en ramenant la somme sur tous les sommets du maillage à uniquement les sommets du triangle considéré :
 $$
@@ -336,22 +343,22 @@ EndFor
 
 ### Calcul des *contributions élémentaires*
 
-Pour calculer les *contributions élémentaires*, nous devons considérer le triangle de référence $\widehat{K}$ et les fonctions de forme $\widehat{\varphi}_i \in \mathbb{P}^1(\widehat{K})$. Leur gradient sont donnés par :
+Pour calculer les *contributions élémentaires*, nous devons considérer le triangle de référence $\widehat{K}$ et les fonctions de forme $\widehat{\varphi}_i \in \mathbb{P}^1(\widehat{K})$. Leur gradient est donné par :
 $$
-\nabla\widehat{\varphi}_0 =
+\nabla\widehat{\varphi}_1 =
 \begin{pmatrix}
   -1\\
   -1
 \end{pmatrix}
 ,
 \quad
-\nabla\widehat{\varphi}_1 =
+\nabla\widehat{\varphi}_2 =
 \begin{pmatrix}
   1\\
   0
 \end{pmatrix},
 \quad
-\nabla\widehat{\varphi}_2 =
+\nabla\widehat{\varphi}_3 =
 \begin{pmatrix}
   0\\
   1
@@ -359,7 +366,7 @@ $$
 $$
 De plus, il faut considérer $\mathrm{\bf J}_p$ la matrice jacobienne de la tranformation des coordonnées de $\widehat{K}$ en celles de $K_p$ qui est donnée par :
 $$
-\mathrm{\bf J}_p = 
+\mathrm{\bf J}_p =
 \left(
 \begin{array}{c c}
   x_{2}^{p} - x_{1}^{p} & x_{3}^{p} - x_{1}^{p}\\
@@ -367,51 +374,71 @@ $$
 \end{array}
 \right),
 $$
-avec $\mathrm{s}_i^p := (x_i^p, y_i^p)$, et son déterminant vaut
+avec $\mathrm{s}_i^p := (x_i^p, y_i^p)$, et dont le déterminant vaut
 $$ | \det(\mathrm{\bf J}_{p})| = 2|K_p| \neq 0.$$
 
-Les coefficients $\mathrm{A}_{I,J}$ sont obtenus pas la relation suivante :
+Les coefficients $\mathrm{A}_{I,J}$ sont ainsi obtenus pas la relation suivante :
 $$
 \mathrm{A}_{I,J} = \int_{K_p}\nabla \varphi_j^p \cdot \nabla\varphi_i^p = | K_p | (\nabla\widehat{\varphi}_j)^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i
 $$
 avec $\mathrm{\bf B}_p = \left( \mathrm{\bf J}_p^\top\right)^{-1}$.
 
-En notant,
+Par ailleurs, en notant,
 $$
 \mathcal{T}^h_{\mathcal{I}} := \{ K \in \mathcal{T}_h\ |\ K \cap (\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}) = \empty\}
 $$
-l'ensemble des triangles qui ne sont pas en contact avec le bord $(\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}})$, nous pouvons remarquer que, de part la définition de $u_\gamma^h$, son support est :
+l'ensemble des triangles qui ne sont pas en contact avec le bord $\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}$, nous pouvons remarquer que, de part la définition de $u_\gamma^h$ :
 $$
 \mathrm{supp}\,(u_\gamma^h) \subseteq \mathcal{T}_h \backslash \mathcal{T}^h_{\mathcal{I}}.
 $$
-Ainsi, $\forall I\ /\ \mathrm{s}_I \in K, K \in \mathcal{T}^h_{\mathcal{I}}, \mathrm{b}_I = 0$.
+C'est-à-dire, $\forall I \in \llbracket 1, N_S \rrbracket,\forall K \in \mathcal{T}^h_{\mathcal{I}}, \mathrm{s}_I \in K \implies \mathrm{b}_I = 0$.
 
-___
-**TODO**
-Déterminons les coefficients pour les autres I
-$$\mathrm{\bf b} = \sum_{p\ =\ 1}^{N_t}\sum_{i\ =\ 1}^{3} \underbrace{- \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_i^p}_{\text{contribution élémentaire}}\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}$$
-
-nous ne pourrons certainement pas calculer explicitement ce terme, nous devons approcher cette intégrale à l'aide d'une formule de quadrature en passant au triangle de référence :
+**TODO: heureusement gamma rad et gamma fen ne se touchent pas, sinon des cas en plus**
+Si on se place sur un triangle du bord $\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}$, alors un triangle a soit ses trois sommets sur le bord, soit il n'en a que deux. Dans le premier cas, $u_\gamma^h$ est constante sur le triangle et donc son gradient est nul. Dans le second cas, on passe dans le triangle de référence $\widehat{K}$ où $\widehat{u_\gamma^h}$ est définie par :
+$$
+\widehat{u_\gamma^h} =
+\left\{
+\begin{aligned}
+  T (\xi + \eta), & \quad \text{si $\mathrm{s}_2$ et $\mathrm{s}_3$ sont à $T$}\\
+  T (1 - \xi), & \quad \text{si $\mathrm{s}_1$ et $\mathrm{s}_3$ sont à $T$}\\
+  T (1 - \eta), & \quad \text{si $\mathrm{s}_1$ et $\mathrm{s}_2$ sont à $T$}
+\end{aligned}
+\right.
+$$
+où $T \in \{T_c, T_f\}$ selon le bord considéré. Les gradients sont respectivement donnés par :
+$$
+\nabla \widehat{u_\gamma^h} =
+\begin{pmatrix}
+  T\\
+  T
+\end{pmatrix}
+,
+\quad
+\nabla \widehat{u_\gamma^h} =
+\begin{pmatrix}
+  -T\\
+  0
+\end{pmatrix},
+\quad
+\nabla \widehat{u_\gamma^h} =
+\begin{pmatrix}
+  0\\
+  -T
+\end{pmatrix}.
+$$
+Les *contributions élémentaires* des coefficients de $\mathrm{\bf b}$ se simplifient en :
 $$
 \begin{aligned}
   \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_i^p
-  & = | \det(\mathrm{\bf J}_p) | \int_{\widehat{K}} \left( \nabla u_\gamma^h (\mathrm{\bf x}(\xi,\eta)) \right)^\top \mathrm{\bf B}_p^\top \nabla \widehat{\varphi}_i(\xi,\eta)\\
-  & \simeq | \det(\mathrm{\bf J}_p) | \sum_{m\ =\ 1}^{M} w_m \left( \nabla u_\gamma^h (\mathrm{\bf x}(\xi_m,\eta_m)) \right)^\top \mathrm{\bf B}_p^\top \nabla \widehat{\varphi}_i(\xi_m,\eta_m).
+  & = | \det(\mathrm{\bf J}_p) | \int_{\widehat{K}} \left( \nabla \widehat{u_\gamma^h} \right)^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla \widehat{\varphi}_i\\
+  &= | K_p | (\nabla \widehat{u_\gamma^h})^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i
+
 \end{aligned}
 $$
-Les points $(\xi_m,\eta_m)$ sont les points de quadrature et les quantités $w_m \in \mathbb{R}$ les poids associés. Notons que le point $x(\xi_m,\eta_m)$ s'obtient par l'expression :
-$$\mathrm{\bf x}(\xi_m,\eta_m) = \sum_{i\ =\ 1}^3 \mathrm{s}_i^p \widehat{\psi}_i (\xi_m,\eta_m)$$
-
-$$\mathrm{\bf b} = - \sum_{p\ =\ 1}^{N_t} | \det(\mathrm{\bf J}_p) | \sum_{i\ =\ 1}^{3} \left( \sum_{m\ =\ 1}^{M} w_m \left( \nabla u_\gamma^h (\mathrm{\bf x}(\xi_m,\eta_m)) \right)^\top \mathrm{\bf B}_p^\top \nabla \widehat{\varphi}_i(\xi_m,\eta_m)\right)\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}$$
-
-Utilisons la règle de Hammer :
-
-| $\xi_m$ | $\eta_m$ | $w_m$ |
-|---------|----------|-------|
-| 1/6     | 1/6      | 1/6   |
-| 4/6     | 1/6      | 1/6   |
-| 1/6     | 4/6      | 1/6   |
-___
+Ainsi, sans tenir compte des triangles où les termes sont nuls, $\mathrm{\bf b}$ se récrit :
+$$
+\mathrm{\bf b} = - \sum_{p\ =\ 1}^{N_t}\sum_{i\ =\ 1}^{3} | K_p | (\nabla \widehat{u_\gamma^h})^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}.
+$$
 
 ## Implantation
 
