@@ -3,6 +3,8 @@
 
 from itertools import product
 
+import numpy as np
+
 from triplets import Triplets
 
 
@@ -20,6 +22,7 @@ def assemblage(mesh):
         the matrix as a Triplets object
     """
     A = Triplets()
+    b = np.zeros((mesh.Npts,))
     for triangle in mesh.triangles:
         # Mp = mass_elem(triangle)
         Dp = stiffness_elem(triangle)
@@ -28,7 +31,26 @@ def assemblage(mesh):
             for j in range(2):
                 J = local_to_global(triangle, j)
                 A.append(I, J, Dp[i, j])
-    return A
+            b[I] += rhs(triangle, i)
+    return (A, b)
+
+
+def rhs(triangle, i):
+    """Computes the right-hand side
+
+    Parameters
+    ----------
+    triangle : Triangle
+        the triangle
+    i : int
+        the local index
+
+    Returns
+    -------
+    float
+        the value
+    """
+    return triangle.area # TODO
 
 
 def mass_elem(triangle):
@@ -68,17 +90,13 @@ def stiffness_elem(triangle):
         the elementary stiffness matrix
     """
     D = Triplets()
-    area = triangle.area()
+    # area = triangle.area()
     for (i, j) in product(range(2), repeat=2):
         if i == j:
             D.append(i, j, 0)  # TODO
         else:
             D.append(i, j, 0)  # TODO
-    return M
-
-
-def mass(mesh, dim, physical_tag, triplets):  # TODO
-    return triplets
+    return D
 
 
 def local_to_global(triangle, i):

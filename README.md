@@ -343,7 +343,7 @@ For p = 1:N_t
       J = locToGlob(p,j)
       A(I,J) += ∫_{K_p}(∇ϕ_j^p·∇ϕ_i^p)
     EndFor
-    b(I) += ∫_{K_p}(∇u_ɣ^h·∇ϕ_i^p)
+    b(I) += -∫_{K_p}(∇u_ɣ^h·∇ϕ_i^p)
   EndFor
 EndFor
 ```

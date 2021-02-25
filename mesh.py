@@ -64,7 +64,7 @@ class Mesh:
                         ids = [nodeTags[0][3 * j], nodeTags[0][3* j + 1],
                                nodeTags[0][3 * j + 2]]
                         points = [point for point in self.points if point.tag in ids]
-                        try:  # TODO : pb triangle plat
+                        try:
                             triangle = Triangle(points, elmTags[0][j])
                             self.triangles.append(triangle)
                         except Exception as e:

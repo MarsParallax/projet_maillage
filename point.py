@@ -16,8 +16,8 @@ class Point:
         self.X = X
         self.tag = tag
 
-    def __sub__(self, other):
-        return Point(self.X - other.X)
+    # def __sub__(self, other):
+    #     return Point(self.X - other.X)
 
     def distance(self, other):
         return np.linalg.norm(self.X - other.X)
