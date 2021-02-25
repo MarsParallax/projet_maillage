@@ -13,17 +13,19 @@ class Triangle:
     ----------
     id : int
         a unique identifier
-    points : numpy.array
-        the points of the triangle
     tag : int
         the tag from GMSH
+    points : numpy.array(Point)
+        the points of the triangle
+    area : float
+        the area of the triangle
     """
 
     _counter = 1
     _name = "Triangle"
 
     def __init__(self, points, tag):
-        """Initializes Triangle with a set of 3 points and a tag
+        """Initializes Triangle with a set of 3 points and a tag.
 
         Parameters
         ----------
@@ -41,7 +43,7 @@ class Triangle:
         self._set_area()
 
     def _set_area(self):
-        """Initialize self.area, the area of the triangle
+        """Initializes self.area, the area of the triangle.
         """
         x0 = self.points[0].X[0]
         y0 = self.points[0].X[1]
@@ -52,17 +54,23 @@ class Triangle:
         self._area = abs((x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0))
 
     def area(self):
-        """Return the area of the triangle 
+        """Returns the area of the triangle.
         """
         return self._area
 
     def jac(self):
-        """Return the jacobian of the triangle
+        """Returns the jacobian of the triangle.
         """
         return 2 * self._area
 
     def passage(self):
-        """Return passage matrix from local gradient of phi to global gradient of phi
+        """Returns passage matrix from local gradient of phi to global gradient
+        of phi.
+
+        Parameters
+        ----------
+        B : numpy.array (3*3)
+            the passage matrix
         """
         x1 = self.points[0].X[0]
         x2 = self.points[1].X[0]
@@ -84,8 +92,12 @@ class Triangle:
         return grad[i]
 
     def matrice_rigidite_elem(self):
-        """return elementary rigidity matrix
-            
+        """Returns elementary stiffness matrix.
+
+        Parameters
+        ----------
+        D : numpy.array (3*3)
+            the elementary stiffness matrix
         """
         D = np.zeros((3, 3))
         for i in range(3):
@@ -96,9 +108,16 @@ class Triangle:
         return D
 
     def rhs(self):
+        """Return the right-hand side (RHS).
+
+        Parameters
+        ----------
+        b : numpy.array (3*1)
+            the right-hand side vector
+        """
         b = np.zeros((3))
         for i in range(3):
             BtB = np.dot(self.passage().T, self.passage())
-            BtB_dot_grad = np.dot(np.array([25,25]).T, BtB)
+            BtB_dot_grad = np.dot(np.array([25, 25]).T, BtB)
             b[i] = self.area()*np.dot(BtB_dot_grad, self.grad_phi_chap(i))
         return b

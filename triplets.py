@@ -15,7 +15,7 @@ class Triplets:
         return str(self.data)
 
     def append(self, I, J, val):
-        """Ajoute le triplet [I, J, val] dans `self.data`.
+        """Append the triplet [I, J, val] in `self.data`.
 
         Parameters
         ----------
@@ -23,7 +23,7 @@ class Triplets:
             the row index
         J : int
             the column index
-        val : double
+        val : float
             the value
         """
         self.data[0].append(val)

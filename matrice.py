@@ -25,7 +25,7 @@ def assemblage(mesh):
     """
     A = Triplets()
     b = np.zeros((mesh.nbPoints))
-    for p in mesh.get_elements(2, -1): # for triangle in mesh.triangles:
+    for p in mesh.get_elements(2, -1):  # for triangle in mesh.triangles:
         Dp = p.matrice_rigidite_elem()
         bp = p.rhs()
         for i in range(3):

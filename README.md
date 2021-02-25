@@ -48,7 +48,7 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
 - 4a
   - [x] commenter le code
 - 4b
-  - [ ] formater le code
+  - [x] formater le code
 - 4c
   - [ ] faire le readme : s'occuper des TODO
 

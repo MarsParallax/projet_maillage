@@ -21,7 +21,7 @@ class Point:
     _name = "Point"
 
     def __init__(self, X, tag):
-        """
+        """Initializes a point with coordinates.
 
         Parameters
         ----------

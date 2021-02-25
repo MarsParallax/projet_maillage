@@ -98,20 +98,16 @@ class Mesh:
         # Return points contained in segments
         if dim == 1:
             if physical_tag == - 1:
-                ids = np.array(
-                    [point.id for segment in self.segments for point in segment.points])
+                ids = np.array([point.id for segment in self.segments for point in segment.points])
             else:
-                ids = np.array(
-                    [point.id for segment in self.segments for point in segment.points if segment.tag == physical_tag])
+                ids = np.array([point.id for segment in self.segments for point in segment.points if segment.tag == physical_tag])
             return np.array([point for point in self.points if point.id in np.unique(ids)])
         # Returns points contained in triangles
         elif dim == 2:
             if physical_tag == - 1:
-                ids = np.array(
-                    [point.id for triangle in self.triangles for point in triangle.points])
+                ids = np.array([point.id for triangle in self.triangles for point in triangle.points])
             else:
-                ids = np.array(
-                    [point.id for triangle in self.triangles for point in triangle.points if triangle.tag == physical_tag])
+                ids = np.array([point.id for triangle in self.triangles for point in triangle.points if triangle.tag == physical_tag])
             return np.array([point for point in self.points if point.id in np.unique(ids)])
         # Others
         else:

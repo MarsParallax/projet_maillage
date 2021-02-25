@@ -7,19 +7,32 @@ import point
 
 
 class Segment:
-    """A simple segment."""
+    """A simple segment.
+    
+    Parameters
+    ----------
+    id : int
+        a unique identifier
+    tag : int
+        the tag from GMSH
+    points : numpy.array(Points)
+        the two points of the segment
+    length : float
+        length of the segment
+    """
 
     _counter = 1
     _name = "Segment"
 
     def __init__(self, points, tag):
-        """Initialize a sement with a set of points. 
+        """Initializes a segment with a 2 points.
+
         Parameters
         ----------
-        points : list of Points
-            points that represent the segement
+        points : numpy.array(Points)
+            the two points of the segment
         tag : int
-            tag of the point
+            the tag from GMSH
         """
         self.id = Segment._counter
         Segment._counter += 1
@@ -30,18 +43,16 @@ class Segment:
         self._set_length()
 
     def _set_length(self):
-        """
-            Initialize the length of the segment
+        """Initializes the length of the segment.
         """
         self._length = self.points[0].distance(self.points[1])
 
     def area(self):
-        """
-            Return the length of the segment 
+        """Returns the length of the segment.
         """
         return self._length
 
     def jac(self):
-        """Return jacobian 
+        """Returns jacobian.
         """
         return self._length

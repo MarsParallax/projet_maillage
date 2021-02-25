@@ -46,8 +46,8 @@ except AttributeError as e:
 print("nb triangle : ", len(mesh.get_elements(2, -1)))
 # Solve the problem
 t, b = assemblage(mesh)
-dirichlet(mesh, 1, 2, dirichlet_eval, t, b) # sur Rad
-dirichlet(mesh, 1, 3, dirichlet_eval, t, b) # sur Fen
+dirichlet(mesh, 1, 2, dirichlet_eval, t, b)  # sur Rad
+dirichlet(mesh, 1, 3, dirichlet_eval, t, b)  # sur Fen
 A = (scipy.sparse.coo_matrix(t.data)).tocsr()
 U = spsolve(A, b)
 
