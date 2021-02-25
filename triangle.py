@@ -23,14 +23,14 @@ class Triangle:
     _name = "Triangle"
 
     def __init__(self, points, tag):
-        """
+        """Initializes Triangle with a set of 3 points and a tag
 
         Parameters
         ----------
         points : numpy.array
-            the points of the triangle
+            the 3 points of the triangle
         tag : int
-            the tag from GMSH
+            the tag of the triangle from GMSH
         """
         self.id = Triangle._counter
         Triangle._counter += 1
@@ -41,6 +41,8 @@ class Triangle:
         self._set_area()
 
     def _set_area(self):
+        """Initialize self.area, the area of the triangle
+        """
         x0 = self.points[0].X[0]
         y0 = self.points[0].X[1]
         x1 = self.points[1].X[0]
@@ -50,12 +52,18 @@ class Triangle:
         self._area = abs((x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0))
 
     def area(self):
+        """Return the area of the triangle 
+        """
         return self._area
 
     def jac(self):
+        """Return the jacobian of the triangle
+        """
         return 2 * self._area
 
     def passage(self):
+        """Return passage matrix from local gradient of phi to global gradient of phi
+        """
         x1 = self.points[0].X[0]
         x2 = self.points[1].X[0]
         x3 = self.points[2].X[0]
@@ -65,10 +73,20 @@ class Triangle:
         return (1 / self.jac()) * np.array([[y3 - y1, y1 - y2], [x1 - x3, x2 - x1]])
 
     def grad_phi_chap(self, i):
+        """Return local gradient of phi.
+
+        Parameters
+        ----------
+        i : int
+            local id of the point
+        """
         grad = np.array([[-1, -1], [1, 0], [0, 1]])
         return grad[i]
 
     def matrice_rigidite_elem(self):
+        """return elementary rigidity matrix
+            
+        """
         D = np.zeros((3, 3))
         for i in range(3):
             for j in range(3):
