@@ -7,21 +7,26 @@ class Assemblage :
 
 
 	def assembler() :
-		Triplets t;
-		For p = 1, ... Nt  // Parcours des Triangles
-		  Mp = MatElem(p); // Matrice Elementaire du triangle p
-		  For i = 1,2,3
-		    I = Loc2Glob(p, i);
-		    For j = 1,2,3
-		      J = Loc2Glob(p,j);
-		      t.append(I, J, Mp(i,j)); // contribution élémentaire
-		    End
-		End
+		A = 0
+		b = 0
+		For p = 1:N_t
+		  For i = 1:3
+		    I = locToGlob(p,i)
+		    For j = 1:3
+		      J = locToGlob(p,j)
+		      A(I,J) += ∫_{K_p}(∇ϕ_j^p·∇ϕ_i^p)
+		    EndFor
+		    b(I) += ∫_{K_p}(∇u_ɣ^h·∇ϕ_i^p)
+		  EndFor
+		EndFor
 		return 0
 
 	def rigidite_elem(element) :
 		return 0
 
-	def loc2glob() :
+	def loc2glob(node) :
+		"""
+			Giving a node 
+		"""
 
 
