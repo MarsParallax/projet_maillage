@@ -11,10 +11,10 @@ class Triangle:
     _counter = 1
     _name = "Triangle"
 
-    def __init__(self, points, physical_tag=-1):
+    def __init__(self, points, tag):
         self.id = Triangle._counter
         Triangle._counter += 1
-        self.physical_tag = physical_tag
+        self.tag = tag
         assert len(points) == 3, "A triangle must have 3 points"
         self.points = points
         # self._area = 0.0

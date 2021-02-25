@@ -26,7 +26,7 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
 - 1c
   - [x] récrire le problème/la reformulation au propre
 - 2a
-  - [ ] tester la modélisation gmsh : **triangles plats**
+  - [x] tester la modélisation gmsh : segments ne contient que les aretes des groupes physiques de dimension 1, si on veut les aretes des triangles ils faut réfléchir car les aretes des triangles ne sont pas des éléments et des entités en elles-mêmes. Bref, on s'en fout, non ?
 - 2b
   - [x] matrice de rigidité
 - 2c
@@ -41,7 +41,7 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
   - [ ] implémenter le calcul du membre de droite
 - 3a
   - [ ] faire `main.py`
-  - [ ] vérifier la matrice de rigidité avec DU=0
+  - [x] vérifier la matrice de rigidité avec DU=0
   - [ ] vérifier locToGlob
   - [ ] vérifier condition de Dirichlet
   - [ ] affichage graphique avec gradient de couleur

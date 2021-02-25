@@ -16,12 +16,13 @@ from triangle import Triangle
 
 
 class Mesh:
-    """Wraps the gmsh calls"""
+    """Wraps the calls to GMSH"""
 
     def __init__(self):
         self.points = []
         self.segments = []
         self.triangles = []
+        self.filename = ""
 
     def gmsh_to_mesh(self, filename):
         """Initialize self.points, self.segments and self.triangles with mesh
@@ -32,6 +33,7 @@ class Mesh:
         filename : str
             the file name
         """
+        self.filename = filename
         gmsh.open(filename)
 
         # Fill self.points
@@ -59,14 +61,15 @@ class Mesh:
                 # Triangle
                 elif dim == 2:
                     for j in range(len(elmTags[0])):
-                        ids = [nodeTags[0][2 * j], nodeTags[0][2* j + 1],
-                               nodeTags[0][2 * j + 2]]
-                        X = [point for point in self.points if point.id in ids]
+                        ids = [nodeTags[0][3 * j], nodeTags[0][3* j + 1],
+                               nodeTags[0][3 * j + 2]]
+                        points = [point for point in self.points if point.tag in ids]
                         try:  # TODO : pb triangle plat
-                            triangle = Triangle(X, elmTags[0][j])
+                            triangle = Triangle(points, elmTags[0][j])
                             self.triangles.append(triangle)
                         except Exception as e:
                             print("[WARNING] `Mesh.gmsh_to_mesh`:", e)
+                            print("Points are:", [point.X for point in points])
                 # Others
                 else:
                    print(f"[WARNING] `Mesh.gmsh_to_mesh`: Unknown element type '{dim}'.")
@@ -94,14 +97,14 @@ class Mesh:
             if physical_tag == - 1:
                 ids = np.array([point.id for segment in self.segments for point in segment.points])
             else:
-                ids = np.array([point for segment in self.segments for point in segment.points if segment.physical_tag == physical_tag])
+                ids = np.array([point for segment in self.segments for point in segment.points if segment.tag == physical_tag])
             return np.array([point for point in self.points if point.id in np.unique(ids)])
         # Returns points contained in triangles
         elif dim == 2:
             if physical_tag == - 1:
                 ids = np.array([point.id for triangle in self.triangles for point in triangle.points])
             else:
-                ids = np.array([point.id for triangle in self.triangles for point in triangle.points if triangle.physical_tag == physical_tag])
+                ids = np.array([point.id for triangle in self.triangles for point in triangle.points if triangle.tag == physical_tag])
             return np.array([point for point in self.points if point.id in np.unique(ids)])
         # Others
         else:
@@ -129,21 +132,28 @@ class Mesh:
             if physical_tag == -1:
                 return np.array([segment for segment in self.segments])
             else:
-                return np.array([segment for segment in self.segments if segment.physical_tag == physical_tag])
+                return np.array([segment for segment in self.segments if segment.tag == physical_tag])
         # Return triangles
         elif dim == 2:
             if physical_tag == -1:
                 return np.array([triangle for triangle in self.triangles])
             else:
-                return np.array([triangle for triangle in self.triangles if triangle.physical_tag == physical_tag])
+                return np.array([triangle for triangle in self.triangles if triangle.tag == physical_tag])
         # Others
         else:
             print(f"[WARNING] `Mesh.get_elements`: Unknown element type '{dim}'.")
         return None
 
+    def __str__(self):
+        res = [f"Mesh loaded from '{self.filename}' composed of:",
+               f"  {len(self.points)} points",
+               f"  {len(self.segments)} segments",
+               f"  {len(self.triangles)} triangles"]
+        return "\n".join(res)
 
 if __name__ == '__main__':
     mesh = Mesh()
     mesh.gmsh_to_mesh("domaine.msh")
+    print(mesh)
     elm = mesh.get_elements(1, 2)
     pt = mesh.get_points(2, 2)

@@ -10,10 +10,11 @@ class Point:
     _counter = 1
     _name = "Point"
 
-    def __init__(self, X, global_index=None):
+    def __init__(self, X, tag):
         self.id = Point._counter
         Point._counter += 1
         self.X = X
+        self.tag = tag
 
     def __sub__(self, other):
         return Point(self.X - other.X)

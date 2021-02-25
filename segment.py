@@ -12,10 +12,10 @@ class Segment:
     _counter = 1
     _name = "Segment"
 
-    def __init__(self, points, physical_tag=-1):
+    def __init__(self, points, tag):
         self.id = Segment._counter
         Segment._counter += 1
-        self.physical_tag = physical_tag
+        self.tag = tag
         assert len(points) == 2, "A segment must have 2 points"
         self.points = points
         # self._length = 0.0
