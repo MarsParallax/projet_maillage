@@ -21,12 +21,13 @@ def assemblage(mesh):
     """
     A = Triplets()
     for triangle in mesh.triangles:
-        Mp = mass_elem(triangle)
+        # Mp = mass_elem(triangle)
+        Dp = rigid_elem(triangle)
         for i in range(2):
             I = local_to_global(triangle, i)
             for j in range(2):
                 J = local_to_global(triangle, j)
-                A.append(I, J, Mp[i, j])
+                A.append(I, J, Dp[i, j])
     return A
 
 
@@ -94,5 +95,5 @@ def local_to_global(triangle, i):
     [type]
         [description]
     """
-    I = 0  # TODO
+    I = 3 * triangle.physical_tag + i # TODO
     return I

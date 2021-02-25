@@ -19,8 +19,8 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
 ## TODO
 
 - 1a
-  - [x] gmshToMesh : construire la listes des éléments
-  - [x] getElements, getPoints : faire un find, pour retourner les objets
+  - [x] gmshToMesh
+  - [x] getElements, getPoints
 - 1b
   - [x] modélisation en gmsh
 - 1c
@@ -28,7 +28,7 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
 - 2a
   - [ ] tester la modélisation gmsh : **triangles plats**
 - 2b
-  - [x] matrice de rigidité : calculer les [gradPhi et la jacobienne](https://bthierry.pages.math.cnrs.fr/course-fem/lecture/elements-finis-triangulaires/contributions-elementaires/)
+  - [ ] matrice de rigidité
   - [ ] vérifier la matrice de rigidité avec DU=0
 - 2c
   - [ ] ~~calculer la quadrature du membre de droite~~

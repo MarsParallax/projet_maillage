@@ -1,19 +1,21 @@
 """Copyright (c) Jérôme Bonacchi et Homer Durand 2021"""
 
 
-import gmsh
 import sys
 
+import gmsh
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mesh import Mesh
 from matrice import *
+from mesh import Mesh
 
-def diri(x,y):
+
+def diri(x, y):
     return 0
 
-## Load the mesh
+
+# Load the mesh
 # Init GMSH
 gmsh.initialize(sys.argv)
 # Ask GMSH to display information in the terminal
@@ -24,7 +26,7 @@ model = gmsh.open(filename)
 mesh = Mesh()
 mesh.gmsh_to_mesh(model.mesh)
 
-## Solve the problem
+# Solve the problem
 t = Triplets()
 stifness(mesh, , , t)
 b = np.zeros((mesh.Npts,))
@@ -32,7 +34,7 @@ dirichlet(msh, t, b, 1, 1, diri)
 A = (sparse.coo_matrix(t.data)).tocsr()
 U = sparse.linalg.spsolve(A, b)
 
-## Plot the results
+# Plot the results
 x = [point[0] for point in mesh.points]
 y = [point[1] for point in mesh.points]
 connectivity = []
