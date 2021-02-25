@@ -28,21 +28,24 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
 - 2a
   - [ ] tester la modélisation gmsh : **triangles plats**
 - 2b
-  - [ ] matrice de rigidité : calculer les [gradPhi et la jacobienne](https://bthierry.pages.math.cnrs.fr/course-fem/lecture/elements-finis-triangulaires/contributions-elementaires/)
+  - [x] matrice de rigidité : calculer les [gradPhi et la jacobienne](https://bthierry.pages.math.cnrs.fr/course-fem/lecture/elements-finis-triangulaires/contributions-elementaires/)
   - [ ] vérifier la matrice de rigidité avec DU=0
 - 2c
   - [ ] ~~calculer la quadrature du membre de droite~~
 - 2d
-  - [ ] faire l'assemblage des matrices élémentaires
+  - [x] faire l'assemblage des matrices élémentaires
 - 2e
-  - [ ] faire locToGlob : je sais pas comment faire
+  - [ ] faire locToGlob : je ne sais pas comment faire
 - 2f
-  - [ ] revoir le reste des taches dans l'implémentation
+  - [ ] condition de Dirichlet
 - 3a
   - [ ] faire `main.py`
   - [ ] affichage graphique avec gradient de couleur
-- 4
+- 4a
   - [ ] commenter le code
+- 4b
+  - [ ] formater le code
+- 4c
   - [ ] faire le readme : s'occuper des TODO, expliquer l'implantation
 
 ## Exécution
@@ -319,7 +322,7 @@ $$ \varphi_i^p = \varphi_{\mathrm{locToGlob}\,(p,i)}|_{K_p}.$$
 Utilisons ces nouvelles notations en ramenant la somme sur tous les sommets du maillage à uniquement les sommets du triangle considéré :
 $$
 \begin{aligned}
-  \mathrm{\bf A} &= \sum_{p=1}^{N_t}\sum_{i=1}^{3}\sum_{j=1}^{3} \int_{K_p}\nabla \varphi_j^p \cdot\nabla \varphi_i^p\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}^\top\mathrm{\bf e}_{\mathrm{locToGlob}\,(p,j)}\\
+  \mathrm{\bf A} &= \sum_{p=1}^{N_t}\sum_{i=1}^{3}\sum_{j=1}^{3} \underbrace{\int_{K_p}\nabla \varphi_j^p \cdot\nabla \varphi_i^p}_{\text{contribution élémentaire}}\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}^\top\mathrm{\bf e}_{\mathrm{locToGlob}\,(p,j)}\\
   \mathrm{\bf b} & = \sum_{p\ =\ 1}^{N_t}\sum_{i\ =\ 1}^{3} \underbrace{- \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_i^p}_{\text{contribution élémentaire}}\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}.
 \end{aligned}
 $$
@@ -376,13 +379,14 @@ $$
 $$
 avec $\mathrm{s}_i^p := (x_i^p, y_i^p)$, et dont le déterminant vaut
 $$ | \det(\mathrm{\bf J}_{p})| = 2|K_p| \neq 0.$$
-
-Les coefficients $\mathrm{A}_{I,J}$ sont ainsi obtenus pas la relation suivante :
+Les *contributions élémentaires* dans $\mathrm{\bf A}$ sont ainsi obtenus pas la relation suivante :
 $$
-\mathrm{A}_{I,J} = \int_{K_p}\nabla \varphi_j^p \cdot \nabla\varphi_i^p = | K_p | (\nabla\widehat{\varphi}_j)^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i
+\int_{K_p}\nabla \varphi_j^p \cdot \nabla\varphi_i^p = | K_p | (\nabla\widehat{\varphi}_j)^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i
 $$
-avec $\mathrm{\bf B}_p = \left( \mathrm{\bf J}_p^\top\right)^{-1}$.
-
+avec $\mathrm{\bf B}_p = \left( \mathrm{\bf J}_p^\top\right)^{-1}$. Donc,
+$$
+\mathrm{\bf A} = \sum_{p=1}^{N_t}\sum_{i=1}^{3}\sum_{j=1}^{3} | K_p | (\nabla\widehat{\varphi}_j)^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}^\top\mathrm{\bf e}_{\mathrm{locToGlob}\,(p,j)}
+$$
 Par ailleurs, en notant,
 $$
 \mathcal{T}^h_{\mathcal{I}} := \{ K \in \mathcal{T}_h\ |\ K \cap (\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}) = \empty\}
@@ -443,5 +447,11 @@ $$
 ## Implantation
 
 Utilisation des format *COO* et *CSR* pour stocker les matrices et faire les calculs.
+
+Pas besoin de faire la matrice de masse (élémentaire) et la mettre dans l'assemblage.
+
+Pas besoin de faire la matrice de rigidité élémentaire générique puisque formule simplifiée.
+
+Pas besoin de faire de la quadrature.
 
 Informatiquement, nous devons donc rendre les lignes et colonnes associées aux degrés de liberté de Dirichlet, nulles, sauf sur la diagonale avec la valeur 1. Cette opération peut être effectuée après l'assemblage de la matrice ou lors de l'algorithme directement.

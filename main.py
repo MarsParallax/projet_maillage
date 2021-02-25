@@ -10,6 +10,9 @@ import numpy as np
 from mesh import Mesh
 from matrice import *
 
+def diri(x,y):
+    return 0
+
 ## Load the mesh
 # Init GMSH
 gmsh.initialize(sys.argv)
@@ -23,8 +26,9 @@ mesh.gmsh_to_mesh(model.mesh)
 
 ## Solve the problem
 t = Triplets()
-mass(mesh, , , t)
+stifness(mesh, , , t)
 b = np.zeros((mesh.Npts,))
+dirichlet(msh, t, b, 1, 1, diri)
 A = (sparse.coo_matrix(t.data)).tocsr()
 U = sparse.linalg.spsolve(A, b)
 
