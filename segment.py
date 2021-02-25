@@ -13,6 +13,14 @@ class Segment:
     _name = "Segment"
 
     def __init__(self, points, tag):
+        """Initialize a sement with a set of points. 
+        Parameters
+        ----------
+        points : list of Points
+            points that represent the segement
+        tag : int
+            tag of the point
+        """
         self.id = Segment._counter
         Segment._counter += 1
         self.tag = tag
@@ -22,10 +30,18 @@ class Segment:
         self._set_length()
 
     def _set_length(self):
+        """
+            Initialize the length of the segment
+        """
         self._length = self.points[0].distance(self.points[1])
 
     def area(self):
+        """
+            Return the length of the segment 
+        """
         return self._length
 
     def jac(self):
+        """Return jacobian 
+        """
         return self._length

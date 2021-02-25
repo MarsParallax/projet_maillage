@@ -11,7 +11,7 @@ from triplets import Triplets
 
 
 def assemblage(mesh):
-	"""Assembles A and b
+    """Assembles A and b
 
     Parameters
     ----------
@@ -24,7 +24,7 @@ def assemblage(mesh):
         matrix A and vector b
     """
     A = Triplets()
-    b = np.zeros((mesh.nbPoints))
+    b = np.zeros((mesh.nbPoints,))
     for p in mesh.get_elements(2, -1) :
     # for triangle in mesh.triangles:
         Dp = p.matrice_rigidite_elem()
@@ -52,7 +52,7 @@ def rhs(triangle, i):
     float
         the value
     """
-    return triangle.area # TODO
+    return triangle.area() # TODO
 
 
 def mass_elem(triangle):
@@ -116,7 +116,8 @@ def local_to_global(triangle, i):
     int
         the global index
     """
-    I = 3 * triangle.id + i
+
+    I = triangle.points[i].id - 1
     return I
 
 
@@ -141,7 +142,7 @@ def dirichlet(mesh, dim, physical_tag, g, triplets, b):
         the right-hand side of the system
     """
     points = mesh.get_points(dim, physical_tag)
-    I = [point.tag for point in points]
+    I = [int(point.id-1) for point in points]
     values =  triplets.data[0]
     row_indices = triplets.data[1][0]
     for i in row_indices: 
@@ -149,7 +150,9 @@ def dirichlet(mesh, dim, physical_tag, g, triplets, b):
             values[i] = 0
     for i in I:
         triplets.append(i, i, 1)
-        b[i] = g(points[i].X)
+        point = [point for point in points if int(point.id - 1) == i] # TODO
+        point = point[0]
+        b[i] = g(point.X)
 
 
 if __name__ == '__main__':
