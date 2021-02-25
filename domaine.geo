@@ -1,6 +1,6 @@
 // Copyright (c) Jerome Bonacchi et Homer Durand 2021
 
-h = 1;
+h = 8;
 
 Point(1) = {0, 0, 0, h};
 Point(2) = {4, 0, 0, h};

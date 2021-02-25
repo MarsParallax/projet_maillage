@@ -6,10 +6,12 @@ from itertools import product
 import numpy as np
 
 from triplets import Triplets
+import mesh
+import numpy as np
+from scipy.sparse import coo_matrix
 
-
-def assemblage(mesh):
-    """Assembles the global matrix.
+def assemblage(mesh) :
+	""" Assemble A
 
     Parameters
     ----------
@@ -19,8 +21,21 @@ def assemblage(mesh):
     Returns
     -------
     Triplets
-        the matrix as a Triplets object
+        matrix A
+    numpy.array
+    	matrix B
     """
+	A = Triplets()
+	b = np.zeros((mesh.nbPoints))
+	for p in mesh.get_elements(2, -1) :
+		Mp = p.matrice_rigidite_elem()
+		for i in range(3) :
+			I = local_to_global(p,i)
+			for j in range(3) :
+				J = local_to_global(p,j)
+				A.append(I, J, Mp[i][j])
+			#b[I] += 0
+	return A, b
     A = Triplets()
     b = np.zeros((mesh.Npts,))
     for triangle in mesh.triangles:
@@ -148,3 +163,12 @@ def dirichlet(mesh, dim, physical_tag, g, triplets, b):
     for i in I:
         triplets.append(i, i, 1)
         b[i] = g(points[i].X)
+
+
+if __name__ == '__main__':
+    mesh = mesh.Mesh()
+    mesh.gmsh_to_mesh("domaine.msh")
+    A, _ = assemblage(mesh) 
+    A_coo = coo_matrix(A.data).tocsr()
+    U = np.zeros((A_coo.get_shape()[0]))+1
+    print(A_coo.dot(U))
