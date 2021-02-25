@@ -4,14 +4,14 @@
 from itertools import product
 
 import numpy as np
-
-from triplets import Triplets
-import mesh
-import numpy as np
 from scipy.sparse import coo_matrix
 
-def assemblage(mesh) :
-	""" Assemble A
+import mesh
+from triplets import Triplets
+
+
+def assemblage(mesh):
+	"""Assembles A and b
 
     Parameters
     ----------
@@ -20,33 +20,20 @@ def assemblage(mesh) :
 
     Returns
     -------
-    Triplets
-        matrix A
-    numpy.array
-    	matrix B
+    (Triplets, numpy.array)
+        matrix A and vector b
     """
-	A = Triplets()
-	b = np.zeros((mesh.nbPoints))
-	for p in mesh.get_elements(2, -1) :
-		Mp = p.matrice_rigidite_elem()
-		for i in range(3) :
-			I = local_to_global(p,i)
-			for j in range(3) :
-				J = local_to_global(p,j)
-				A.append(I, J, Mp[i][j])
-			#b[I] += 0
-	return A, b
     A = Triplets()
-    b = np.zeros((mesh.Npts,))
-    for triangle in mesh.triangles:
-        # Mp = mass_elem(triangle)
-        Dp = stiffness_elem(triangle)
-        for i in range(2):
-            I = local_to_global(triangle, i)
-            for j in range(2):
-                J = local_to_global(triangle, j)
-                A.append(I, J, Dp[i, j])
-            b[I] += rhs(triangle, i)
+    b = np.zeros((mesh.nbPoints))
+    for p in mesh.get_elements(2, -1) :
+    # for triangle in mesh.triangles:
+        Dp = p.matrice_rigidite_elem()
+        for i in range(3) :
+            I = local_to_global(p,i)
+            for j in range(3) :
+                J = local_to_global(p,j)
+                A.append(I, J, Dp[i][j])
+            b[I] += rhs(p, i)
     return (A, b)
 
 

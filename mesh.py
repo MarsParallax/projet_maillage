@@ -4,11 +4,8 @@
 import sys
 
 import gmsh
-import numpy as np 
+import numpy as np
 from matplotlib import pyplot as plt
-
-gmsh.initialize()
-gmsh.option.setNumber("General.Terminal", 0)
 
 from point import Point
 from segment import Segment
@@ -44,7 +41,7 @@ class Mesh:
             point = Point(np.array([x, y]), tag)
             self.points.append(point)
 
-        #Set number of points of mesh
+        # Set number of points of mesh
         self.nbPoints = len(X)
 
         # Fill self.segments, self.triangles
@@ -64,9 +61,10 @@ class Mesh:
                 # Triangle
                 elif dim == 2:
                     for j in range(len(elmTags[0])):
-                        ids = [nodeTags[0][3 * j], nodeTags[0][3* j + 1],
+                        ids = [nodeTags[0][3 * j], nodeTags[0][3 * j + 1],
                                nodeTags[0][3 * j + 2]]
-                        points = [point for point in self.points if point.tag in ids]
+                        points = [
+                            point for point in self.points if point.tag in ids]
                         try:
                             triangle = Triangle(points, elmTags[0][j])
                             self.triangles.append(triangle)
@@ -75,7 +73,8 @@ class Mesh:
                             print("Points are:", [point.X for point in points])
                 # Others
                 else:
-                   print(f"[WARNING] `Mesh.gmsh_to_mesh`: Unknown element type '{dim}'.")
+                    print(
+                        f"[WARNING] `Mesh.gmsh_to_mesh`: Unknown element type '{dim}'.")
 
     def get_points(self, dim=-1, physical_tag=-1):
         """Return points in the entity of dimensions dim et physical tag
@@ -98,20 +97,25 @@ class Mesh:
         # Return points contained in segments
         if dim == 1:
             if physical_tag == - 1:
-                ids = np.array([point.id for segment in self.segments for point in segment.points])
+                ids = np.array(
+                    [point.id for segment in self.segments for point in segment.points])
             else:
-                ids = np.array([point for segment in self.segments for point in segment.points if segment.tag == physical_tag])
+                ids = np.array(
+                    [point for segment in self.segments for point in segment.points if segment.tag == physical_tag])
             return np.array([point for point in self.points if point.id in np.unique(ids)])
         # Returns points contained in triangles
         elif dim == 2:
             if physical_tag == - 1:
-                ids = np.array([point.id for triangle in self.triangles for point in triangle.points])
+                ids = np.array(
+                    [point.id for triangle in self.triangles for point in triangle.points])
             else:
-                ids = np.array([point.id for triangle in self.triangles for point in triangle.points if triangle.tag == physical_tag])
+                ids = np.array(
+                    [point.id for triangle in self.triangles for point in triangle.points if triangle.tag == physical_tag])
             return np.array([point for point in self.points if point.id in np.unique(ids)])
         # Others
         else:
-            print(f"[WARNING] `Mesh.get_points`: Unknown element type '{dim}'.")
+            print(
+                f"[WARNING] `Mesh.get_points`: Unknown element type '{dim}'.")
         return None
 
     def get_elements(self, dim, physical_tag):
@@ -144,7 +148,8 @@ class Mesh:
                 return np.array([triangle for triangle in self.triangles if triangle.tag == physical_tag])
         # Others
         else:
-            print(f"[WARNING] `Mesh.get_elements`: Unknown element type '{dim}'.")
+            print(
+                f"[WARNING] `Mesh.get_elements`: Unknown element type '{dim}'.")
         return None
 
     def __str__(self):
@@ -154,9 +159,13 @@ class Mesh:
                f"  {len(self.triangles)} triangles"]
         return "\n".join(res)
 
+
 if __name__ == '__main__':
+    gmsh.initialize()
+    gmsh.option.setNumber("General.Terminal", 0)
     mesh = Mesh()
     mesh.gmsh_to_mesh("domaine.msh")
     print(mesh)
     elm = mesh.get_elements(1, 2)
     pt = mesh.get_points(2, 2)
+    gmsh.finalize()
