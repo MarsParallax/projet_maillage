@@ -5,7 +5,7 @@ from scipy.sparse import coo_matrix
 
 
 class Triplets:
-    """Un triplet de trois listes : valeurs, indices de lignes, indices de colonnes. 
+    """A list of triplet made up of : values, row indices, columns indices.
     """
 
     def __init__(self):
@@ -19,12 +19,12 @@ class Triplets:
 
         Parameters
         ----------
-        I : [type]
-            [description]
-        J : [type]
-            [description]
-        val : [type]
-            [description]
+        I : int
+            the row index
+        J : int
+            the column index
+        val : double
+            the value
         """
         self.data[0].append(val)
         self.data[1][0].append(I)

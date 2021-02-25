@@ -11,8 +11,20 @@ from matrice import *
 from mesh import Mesh
 
 
-def diri(x, y):
-    return 0
+def dirichlet_eval(X):
+    """Evaluate Dirichlet condition on X.
+
+    Parameters
+    ----------
+    X : numpy array
+        the coordinates on which evaluation is done
+
+    Returns
+    -------
+    double
+        the result of the evaluation
+    """
+    return 0.0
 
 
 # Load the mesh
@@ -30,7 +42,8 @@ mesh.gmsh_to_mesh(model.mesh)
 t = Triplets()
 stifness(mesh, , , t)
 b = np.zeros((mesh.Npts,))
-dirichlet(msh, t, b, 1, 1, diri)
+dirichlet(mesh, 1, 1, dirichlet_eval, t, b) # sur Fen
+dirichlet(mesh, 1, 1, dirichlet_eval, t, b) # sur Rad
 A = (sparse.coo_matrix(t.data)).tocsr()
 U = sparse.linalg.spsolve(A, b)
 

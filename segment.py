@@ -7,7 +7,7 @@ import point
 
 
 class Segment:
-    """Un simple segment."""
+    """A simple segment."""
 
     _counter = 1
     _name = "Segment"
@@ -16,7 +16,7 @@ class Segment:
         self.id = Segment._counter
         Segment._counter += 1
         self.physical_tag = physical_tag
-        assert len(points) == 2, "A 'segment must have 2 points"
+        assert len(points) == 2, "A segment must have 2 points"
         self.points = points
         # self._length = 0.0
         self._set_length()

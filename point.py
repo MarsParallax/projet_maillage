@@ -5,13 +5,7 @@ import numpy as np
 
 
 class Point:
-    """Un simple point.
-
-    Returns
-    -------
-    [type]
-        [description]
-    """
+    """A simple point."""
 
     _counter = 1
     _name = "Point"

@@ -7,22 +7,22 @@ from triplets import Triplets
 
 
 def assemblage(mesh):
-    """Assemble la matrice du système.
+    """Assembles the global matrix.
 
     Parameters
     ----------
-    mesh : [type]
-        [description]
+    mesh : Mesh
+        the mesh
 
     Returns
     -------
-    [type]
-        [description]
+    Triplets
+        the matrix as a Triplets object
     """
     A = Triplets()
     for triangle in mesh.triangles:
         # Mp = mass_elem(triangle)
-        Dp = rigid_elem(triangle)
+        Dp = stiffness_elem(triangle)
         for i in range(2):
             I = local_to_global(triangle, i)
             for j in range(2):
@@ -32,17 +32,17 @@ def assemblage(mesh):
 
 
 def mass_elem(triangle):
-    """Calcule la matrice de masse élémentaire d'un triangle
+    """Computes the elementary mass matrix on a triangle
 
     Parameters
     ----------
-    triangle : [type]
-        [description]
+    triangle : Triangle
+        the triangle on which the matrix is computed
 
     Returns
     -------
-    [type]
-        [description]
+    Triplets (length = 9)
+        the elementary mass matrix
     """
     M = Triplets()
     area = triangle.area()
@@ -53,26 +53,27 @@ def mass_elem(triangle):
             M.append(i, j, area / 12)
     return M
 
-def rigid_elem(triangle):
-    """Calcule la matrice de rigidité élémentaire d'un triangle
+
+def stiffness_elem(triangle):
+    """Computes the elementary stiffness matrix on a triangle
 
     Parameters
     ----------
-    triangle : [type]
-        [description]
+    triangle : Triangle
+        the triangle on which the matrix is computed
 
     Returns
     -------
-    [type]
-        [description]
+    Triplets (length = 9)
+        the elementary stiffness matrix
     """
-    M = Triplets()
+    D = Triplets()
     area = triangle.area()
     for (i, j) in product(range(2), repeat=2):
         if i == j:
-            M.append(i, j, 0) # TODO
+            D.append(i, j, 0)  # TODO
         else:
-            M.append(i, j, 0) # TODO
+            D.append(i, j, 0)  # TODO
     return M
 
 
@@ -81,19 +82,51 @@ def mass(mesh, dim, physical_tag, triplets):  # TODO
 
 
 def local_to_global(triangle, i):
-    """Convertit l'indice local à un triangle en l'indice global.
+    """Converts the local index into the global index.
 
     Parameters
     ----------
-    triangle : [type]
-        [description]
-    i : [type]
-        [description]
+    triangle : Triangle
+        the triangle
+    i : int
+        the local index
 
     Returns
     -------
-    [type]
-        [description]
+    int
+        the global index
     """
-    I = 3 * triangle.physical_tag + i # TODO
+    I = 3 * triangle.id + i
     return I
+
+
+def dirichlet(mesh, dim, physical_tag, g, triplets, b):
+    """Applies the Dirichlet condition u=g on the domain corresponding to dim
+    and physical tag in the system made of triplet and b. triplets and b are
+    altered.
+
+    Parameters
+    ----------
+    mesh : Mesh
+        the mesh
+    dim : int
+        the dimension of the domaine on which the condition is applied
+    physical_tag : int
+        the physical tag of the domaine on which the condition is applied
+    g : function(numpy.array)
+        the function of the Dirichlet condition
+    triplets : Triplets
+        the matrix of the system
+    b : numpy.array
+        the right-hand side of the system
+    """
+    points = mesh.get_points(dim, physical_tag)
+    I = [point.tag for point in points]
+    values =  triplets.data[0]
+    row_indices = triplets.data[1][0]
+    for i in row_indices: 
+        if i in I:
+            values[i] = 0
+    for i in I:
+        triplets.append(i, i, 1)
+        b[i] = g(points[i].X)

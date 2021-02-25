@@ -16,6 +16,7 @@ from triangle import Triangle
 
 
 class Mesh:
+    """Wraps the gmsh calls"""
 
     def __init__(self):
         self.points = []
@@ -23,9 +24,13 @@ class Mesh:
         self.triangles = []
 
     def gmsh_to_mesh(self, filename):
-        """
-        Initialize self.points, self.segments and self.triangles with mesh
+        """Initialize self.points, self.segments and self.triangles with mesh
         stored in filename
+
+        Parameters
+        ----------
+        filename : str
+            the file name
         """
         gmsh.open(filename)
 
@@ -66,9 +71,21 @@ class Mesh:
                 else:
                    print(f"[WARNING] `Mesh.gmsh_to_mesh`: Unknown element type '{dim}'.")
 
-    def get_points(self, dim, physical_tag):
-        """
-        Return points
+    def get_points(self, dim=-1, physical_tag=-1):
+        """Return points in the entity of dimensions dim et physical tag
+        physical_tag. By default, returns all the points.
+
+        Parameters
+        ----------
+        dim : int
+            the dimension, by default -1
+        physical_tag : int
+            the physical_tag, by default -1
+
+        Returns
+        -------
+        numpy.array
+            the points
         """
         if dim == - 1 and physical_tag == - 1:
             return np.array([self.points])
@@ -92,9 +109,20 @@ class Mesh:
         return None
 
     def get_elements(self, dim, physical_tag):
-        """
-        Return elements of dimension dim and physical tag physical_tag
+        """Return elements of dimension dim and physical tag physical_tag
         (dim = 1 for segement and 2 for triangles).
+
+        Parameters
+        ----------
+        dim : int
+            the dimension
+        physical_tag : int
+            the physical tag
+
+        Returns
+        -------
+        numpy.array
+            the elements
         """
         # Return segments
         if dim == 1:

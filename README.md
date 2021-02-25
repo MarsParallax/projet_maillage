@@ -28,18 +28,22 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
 - 2a
   - [ ] tester la modélisation gmsh : **triangles plats**
 - 2b
-  - [ ] matrice de rigidité
-  - [ ] vérifier la matrice de rigidité avec DU=0
+  - [x] matrice de rigidité
 - 2c
   - [ ] ~~calculer la quadrature du membre de droite~~
 - 2d
   - [x] faire l'assemblage des matrices élémentaires
 - 2e
-  - [ ] faire locToGlob : je ne sais pas comment faire
+  - [x] faire locToGlob
 - 2f
-  - [ ] condition de Dirichlet
+  - [x] condition de Dirichlet
+- 2g
+  - [ ] implémenter le calcul du membre de droite
 - 3a
   - [ ] faire `main.py`
+  - [ ] vérifier la matrice de rigidité avec DU=0
+  - [ ] vérifier locToGlob
+  - [ ] vérifier condition de Dirichlet
   - [ ] affichage graphique avec gradient de couleur
 - 4a
   - [ ] commenter le code
@@ -455,3 +459,8 @@ Pas besoin de faire la matrice de rigidité élémentaire générique puisque fo
 Pas besoin de faire de la quadrature.
 
 Informatiquement, nous devons donc rendre les lignes et colonnes associées aux degrés de liberté de Dirichlet, nulles, sauf sur la diagonale avec la valeur 1. Cette opération peut être effectuée après l'assemblage de la matrice ou lors de l'algorithme directement.
+Pour cela, nous parcourons les noeuds I du domaine de Dirichlet. Puis, dans
+la liste des indices ligne de triplets, dès qu’une occurence à I est obtenu,
+la valeur de ce triplet est mise à 0. Il ne faut pas oublier, à la fin,
+d’ajouter un triplet (I,I,1) correspondant au terme diagonal et de modifier
+le coefficient b[I] = g(x,y)

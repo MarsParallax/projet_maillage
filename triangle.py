@@ -6,7 +6,7 @@ import point
 
 
 class Triangle:
-    """Un simple triangle."""
+    """A simple triangle."""
 
     _counter = 1
     _name = "Triangle"
