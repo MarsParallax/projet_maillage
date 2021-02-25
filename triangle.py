@@ -7,12 +7,31 @@ import point
 
 
 class Triangle:
-    """A simple triangle."""
+    """A simple triangle.
+
+    Parameters
+    ----------
+    id : int
+        a unique identifier
+    points : numpy.array
+        the points of the triangle
+    tag : int
+        the tag from GMSH
+    """
 
     _counter = 1
     _name = "Triangle"
 
     def __init__(self, points, tag):
+        """
+
+        Parameters
+        ----------
+        points : numpy.array
+            the points of the triangle
+        tag : int
+            the tag from GMSH
+        """
         self.id = Triangle._counter
         Triangle._counter += 1
         self.tag = tag
@@ -57,3 +76,11 @@ class Triangle:
                 BtB_dot_grad = np.dot(self.grad_phi_chap(j).T, BtB)
                 D[i][j] = self.area()*np.dot(BtB_dot_grad, self.grad_phi_chap(i))
         return D
+
+    def rhs(self):
+        b = np.zeros((3))
+        for i in range(3):
+            BtB = np.dot(self.passage().T, self.passage())
+            BtB_dot_grad = np.dot(np.array([25,25]).T, BtB)
+            b[i] = self.area()*np.dot(BtB_dot_grad, self.grad_phi_chap(i))
+        return b

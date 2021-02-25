@@ -20,10 +20,11 @@ class Mesh:
         self.segments = []
         self.triangles = []
         self.filename = ""
+        self.nbPoints = 0
 
     def gmsh_to_mesh(self, filename):
         """Initialize self.points, self.segments and self.triangles with mesh
-        stored in filename
+        stored in filename.
 
         Parameters
         ----------
@@ -101,7 +102,7 @@ class Mesh:
                     [point.id for segment in self.segments for point in segment.points])
             else:
                 ids = np.array(
-                    [point for segment in self.segments for point in segment.points if segment.tag == physical_tag])
+                    [point.id for segment in self.segments for point in segment.points if segment.tag == physical_tag])
             return np.array([point for point in self.points if point.id in np.unique(ids)])
         # Returns points contained in triangles
         elif dim == 2:

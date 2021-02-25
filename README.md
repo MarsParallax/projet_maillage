@@ -40,17 +40,17 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
 - 2g
   - [ ] implémenter le calcul du membre de droite
 - 3a
-  - [ ] faire `main.py`
+  - [x] faire `main.py`
   - [x] vérifier la matrice de rigidité avec DU=0
-  - [ ] vérifier locToGlob
-  - [ ] vérifier condition de Dirichlet
-  - [ ] affichage graphique avec gradient de couleur
+  - [x] vérifier locToGlob
+  - [x] vérifier condition de Dirichlet
+  - [x] affichage graphique avec gradient de couleur
 - 4a
-  - [ ] commenter le code
+  - [x] commenter le code
 - 4b
   - [ ] formater le code
 - 4c
-  - [ ] faire le readme : s'occuper des TODO, expliquer l'implantation
+  - [ ] faire le readme : s'occuper des TODO
 
 ## Exécution
 
@@ -210,7 +210,7 @@ $$
 
 ### Méthode de Galerkin
 
-Nous avons montré que le théorème de Lax-Milgram s'applique à la formulation variationnelle $(\mathrm{P_{FF}})$, et donc, que le problème $(\mathrm{P}_\text{initial})$ admet une unique solution. **TODO: vrai?**
+Nous avons montré que le théorème de Lax-Milgram s'applique à la formulation variationnelle $(\mathrm{P_{FF}})$.
 Utilisons la méthode de Galerkin pour *approcher* l'espace $H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$ par un espace de Hilbert (pour le même produit scalaire) $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} \subset H^1_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}} (\Omega)$, de *dimension finie*. La formulation faible $(\mathrm{P_{FF}})$ est alors résolue dans $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$. Ainsi, le problème se récrit :
 $$
 (\mathrm{P_{approché}}) :
@@ -450,17 +450,10 @@ $$
 
 ## Implantation
 
-Utilisation des format *COO* et *CSR* pour stocker les matrices et faire les calculs.
+Pour les formats des matrices, nous avons utiliser des format Triplets, puis *COO* et *CSR*. Le premier format permet de construire la matrice au fur et à mesure. Le deuxième n'est utilisé que pour convertir le premier en le troisième. Ce dernier est utilisé pour la résolution du système linéaire.
 
-Pas besoin de faire la matrice de masse (élémentaire) et la mettre dans l'assemblage.
+On utilise un attribut `id` qui est unique à chaque instance (pour une classe donnée) qui permet d'indicer les objets de manière globale. Il est utilisé dans l'assemblage et dans la condition de Dirichlet lorsqu'il faut passer de l'indice local d'un sommet à son indice global.
 
-Pas besoin de faire la matrice de rigidité élémentaire générique puisque formule simplifiée.
+Ici, nous n'avons pas eu besoin de calculer la matrice de masse (élémentaire) et de la mettre dans l'assemblage. Pour la matrice de rigidité élémentaire (qui est ici égale à la matrice $\mathrm{\bf A}$), nous avons utilisé la formule simplifiée présentée auparavant. Nous n'avons également pas eu besoin de faire de quadrature.
 
-Pas besoin de faire de la quadrature.
-
-Informatiquement, nous devons donc rendre les lignes et colonnes associées aux degrés de liberté de Dirichlet, nulles, sauf sur la diagonale avec la valeur 1. Cette opération peut être effectuée après l'assemblage de la matrice ou lors de l'algorithme directement.
-Pour cela, nous parcourons les noeuds I du domaine de Dirichlet. Puis, dans
-la liste des indices ligne de triplets, dès qu’une occurence à I est obtenu,
-la valeur de ce triplet est mise à 0. Il ne faut pas oublier, à la fin,
-d’ajouter un triplet (I,I,1) correspondant au terme diagonal et de modifier
-le coefficient b[I] = g(x,y)
+Pour la condition de Dirichlet, nous devons donc rendre les lignes et colonnes associées aux degrés de liberté de Dirichlet, nulles, sauf sur la diagonale avec la valeur 1. Cette opération est effectuée après l'assemblage de la matrice. Pour cela, nous parcourons les nœuds I du domaine de Dirichlet. Puis, dans la liste des indices ligne de triplets, dès qu’une occurence à I est obtenu, la valeur de ce triplet est mise à 0. Il ne faut pas oublier, à la fin, d’ajouter un triplet (I,I,1) correspondant au terme diagonal et de modifier le coefficient b[I] = g(x,y).
