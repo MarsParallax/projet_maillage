@@ -100,14 +100,13 @@ def dirichlet(mesh, dim, physical_tag, g, triplets, b):
     """
     points = mesh.get_points(dim, physical_tag)
     corresp = {int(point.id - 1): point for point in points}
-    I = [int(point.id - 1) for point in points]
-    row_indices = triplets.data[1][0]
-    for i in row_indices:
-        if i in I:
+    for i in range(len(triplets.data[0])):
+        row_index = triplets.data[1][0][i]
+        if row_index in corresp.keys():
             triplets.data[0][i] = 0
-    for i in I:
+    for (i, point) in corresp.items():
         triplets.append(i, i, 1)
-        b[i] = g(corresp[i].X)
+        b[i] = g(point.X)
 
 
 if __name__ == '__main__':

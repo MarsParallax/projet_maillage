@@ -56,7 +56,7 @@ class Mesh:
                     for j in range(len(elmTags[0])):
                         ids = [nodeTags[0][2 * j], nodeTags[0][2 * j + 1]]
                         pts = [point for point in self.points if point.id in ids]
-                        segment = Segment(pts, elmTags[0][j])
+                        segment = Segment(pts, physical_tag)
                         self.segments.append(segment)
 
                 # Triangle
@@ -67,7 +67,7 @@ class Mesh:
                         points = [
                             point for point in self.points if point.tag in ids]
                         try:
-                            triangle = Triangle(points, elmTags[0][j])
+                            triangle = Triangle(points, physical_tag)
                             self.triangles.append(triangle)
                         except Exception as e:
                             print("[WARNING] `Mesh.gmsh_to_mesh`:", e)

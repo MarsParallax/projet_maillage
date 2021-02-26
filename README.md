@@ -3,7 +3,6 @@
 par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité mathématiques appliquées et informatique
 
 - [Projet de maillage et éléments finis](#projet-de-maillage-et-éléments-finis)
-  - [TODO](#todo)
   - [Exécution](#exécution)
   - [Explications du problème](#explications-du-problème)
   - [Résolution du problème](#résolution-du-problème)
@@ -16,41 +15,7 @@ par Jérôme Bonacchi et Homer Durand à Polytech Sorbonne en spécialité math�
     - [Calcul des *contributions élémentaires*](#calcul-des-contributions-élémentaires)
   - [Implantation](#implantation)
 
-## TODO
-
-- 1a
-  - [x] gmshToMesh
-  - [x] getElements, getPoints
-- 1b
-  - [x] modélisation en gmsh
-- 1c
-  - [x] récrire le problème/la reformulation au propre
-- 2a
-  - [x] tester la modélisation gmsh : segments ne contient que les aretes des groupes physiques de dimension 1, si on veut les aretes des triangles ils faut réfléchir car les aretes des triangles ne sont pas des éléments et des entités en elles-mêmes. Bref, on s'en fout, non ?
-- 2b
-  - [x] matrice de rigidité
-- 2c
-  - [ ] ~~calculer la quadrature du membre de droite~~
-- 2d
-  - [x] faire l'assemblage des matrices élémentaires
-- 2e
-  - [x] faire locToGlob
-- 2f
-  - [x] condition de Dirichlet
-- 2g
-  - [ ] implémenter le calcul du membre de droite
-- 3a
-  - [x] faire `main.py`
-  - [x] vérifier la matrice de rigidité avec DU=0
-  - [x] vérifier locToGlob
-  - [x] vérifier condition de Dirichlet
-  - [x] affichage graphique avec gradient de couleur
-- 4a
-  - [x] commenter le code
-- 4b
-  - [x] formater le code
-- 4c
-  - [ ] faire le readme : s'occuper des TODO
+![Résultats obtenus avec $h=0,1$](figures/figure_contour_h01.png)
 
 ## Exécution
 
@@ -65,12 +30,14 @@ Le code a été testé avec :
 Pour lancer le programme, il suffit de tapper :
 
 ```sh
-python3 main.py
+python3 main.py [filename.msh]
 ```
 
 ## Explications du problème
 
 [Lien vers le sujet du projet (visité en fevrier 2021)](https://bthierry.pages.math.cnrs.fr/course-fem/projet/2020-2021/)
+
+*Figure : Schéma du domaine et de ses bords*
 
 <img src="https://bthierry.pages.math.cnrs.fr/course-fem/_images/2020-2021-flat.svg">
 
@@ -234,30 +201,30 @@ u_{\gamma}^h (\mathrm{s}_J) =
 \end{array}
 \right.
 $$
-Cette fonction est un relèvement de l'interpolée de $T_c$ et de $T_f$ dans $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$.
+Cette fonction est un relèvement de l'interpolée de $T_c$ et de $T_f$ dans $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$. On peut ainsi écrire $u_{r}^h = u_h - u_{\gamma}^h$, où $u_h$ est la solution que nous cherchons.
 
 ### Formulation matricielle
 
 Grâce à $(\mathrm{P_{approché}})$, les propriétés des applications $a(\cdot,\cdot)$ et $\ell(\cdot)$ et de l'espace $V^h_{\Gamma_{\text{Rad}}, \Gamma_{\text{Fen}}}$, nous pouvons récrire ce problème comme la résolution du système linéaire :
 $$
-(\mathrm{P_{matriciel}}) : \mathrm{\bf A} \mathrm{\bf u}_r^h = \mathrm{\bf b}.
+(\mathrm{P_{matriciel}}) : \mathrm{\bf A} \mathrm{\bf u}_r^h = \mathrm{\bf b}_r.
 $$
-Les coefficients de la matrice $\mathrm{\bf A}$ et des vecteurs $\mathrm{\bf u}_r^h$ et $\mathrm{\bf b}$ sont donnés par :
+Les coefficients de la matrice $\mathrm{\bf A}$ et des vecteurs $\mathrm{\bf u}_r^h$ et $\mathrm{\bf b}_r$ sont donnés par :
 $$
 \begin{aligned}
     \mathrm{\bf A} & = (\mathrm{A}_{I,J})_{1 \leqslant I,J \leqslant N_S}, & \mathrm{A}_{I,J} &= a(\varphi_J,\varphi_J) = \int_{\Omega}\nabla \varphi_J\cdot\nabla\varphi_I\\
-    \mathrm{\bf u}_r^h & = ({u_r^h}_I)_{1 \leqslant I \leqslant N_S} & &\\
-    \mathrm{\bf b} & = (\mathrm{b}_I)_{1 \leqslant I \leqslant N_S}, & \mathrm{b}_I & = \ell(\varphi_I) = - \int_{\Omega} \nabla u_\gamma^h \cdot \nabla \varphi_I
+    \mathrm{\bf u}_r^h & = ({u_r^h}(\mathrm{s}_I))_{1 \leqslant I \leqslant N_S} & {u_r^h}(\mathrm{s}_I) &= {u_h}(\mathrm{s}_I) - {u_\gamma^h}(\mathrm{s}_I)\\
+    \mathrm{\bf b}_r & = ({\mathrm{b}_r}_I)_{1 \leqslant I \leqslant N_S}, & {\mathrm{b}_r}_I & = \ell(\varphi_I) = - \int_{\Omega} \nabla u_\gamma^h \cdot \nabla \varphi_I
 \end{aligned}
 $$
-Nous séparons les degrés de liberté en deux sous-ensembles (quitte à renuméroter) :
+En utilisant les mêmes notations, nous pouvons donc dire que $\mathrm{\bf u}_r^h = \mathrm{\bf u}_h - \mathrm{\bf u}_\gamma^h$. Nous séparons les degrés de liberté en deux sous-ensembles (quitte à renuméroter) :
 
-1. Ceux qui appartiennent à $\Omega \cup \Gamma_{\text{Mur}}$ : nous les notons avec un indice $\mathcal{I}$ ;
-2. Ceux qui appartiennent à $\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}$, ils sont notés avec un indice $\mathcal{D}$.
+1. Ceux qui appartiennent à $\Omega \cup \Gamma_{\text{Mur}}$ que nous notons avec un indice $\mathcal{I}$ ;
+2. Ceux qui appartiennent à $\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}$ que nous notons avec un indice $\mathcal{D}$.
 
 Le système $(\mathrm{P_{matriciel}})$ devient :
 $$
-\mathrm{\bf A} \mathrm{\bf u}_r^h = \mathrm{\bf b} \iff \left(
+\mathrm{\bf A} \mathrm{\bf u}_r^h = \mathrm{\bf b}_r \iff \left(
 \begin{array}{c c}
   \mathrm{\bf A}_{\mathcal{I},\mathcal{I}}  & \mathrm{\bf A}_{\mathcal{I}, \mathcal{D}}\\
   \mathrm{\bf A}_{\mathcal{D}, \mathcal{I}} & \mathrm{\bf A}_{\mathcal{D},\mathcal{D}}
@@ -269,13 +236,66 @@ $$
 \end{array}
 \right) =  \left(
 \begin{array}{c}
+  {\mathrm{\bf b}_r}_\mathcal{I}\\
+  {\mathrm{\bf b}_r}_\mathcal{D}
+\end{array}
+\right)
+$$
+Puisque nous avons :
+$$
+\mathrm{\bf A} \mathrm{\bf u}_r^h = \mathrm{\bf b}_r \iff \mathrm{\bf A} \mathrm{\bf u}_h = \mathrm{\bf b}_r - \mathrm{\bf A} \mathrm{\bf u}_{\gamma}^h = \mathrm{\bf b}
+$$
+En récrivant le système en $\mathrm{\bf u}_h$, nous obtenons :
+$$
+\mathrm{\bf A} \mathrm{\bf u}_h = \mathrm{\bf b} \iff \left(
+\begin{array}{c c}
+  \mathrm{\bf A}_{\mathcal{I},\mathcal{I}}  & \mathrm{\bf A}_{\mathcal{I}, \mathcal{D}}\\
+  \mathrm{\bf A}_{\mathcal{D}, \mathcal{I}} & \mathrm{\bf A}_{\mathcal{D},\mathcal{D}}
+\end{array}
+\right) \left(
+\begin{array}{c}
+  {\mathrm{\bf u}_h}_\mathcal{I}\\
+  {\mathrm{\bf u}_h}_\mathcal{D}
+\end{array}
+\right) =  \left(
+\begin{array}{c}
   \mathrm{\bf b}_\mathcal{I}\\
   \mathrm{\bf b}_\mathcal{D}
 \end{array}
 \right)
 $$
-Appliquer la condition de Dirichlet homogène se traduit par :
+Appliquer la condition de Dirichlet homogène du système $(\mathrm{P_{relèvement}})$ permet de simplifier le système $(\mathrm{P_{matriciel}})$ en :
 $$
+\mathrm{\bf A} \mathrm{\bf u}_r^h = \mathrm{\bf b}_r \iff \left(
+\begin{array}{c c}
+  \mathrm{\bf A}_{\mathcal{I},\mathcal{I}}  & \mathrm{\bf A}_{\mathcal{I}, \mathcal{D}}\\
+  \mathrm{\bf 0} & \mathrm{\bf I}_{\mathcal{D},\mathcal{D}}
+\end{array}
+\right) \left(
+\begin{array}{c}
+  {\mathrm{\bf u}_r^h}_\mathcal{I}\\
+  {\mathrm{\bf u}_r^h}_\mathcal{D}
+\end{array}
+\right) =  \left(
+\begin{array}{c}
+  {\mathrm{\bf b}_r}_\mathcal{I}\\
+  \mathrm{\bf 0}
+\end{array}
+\right)
+$$
+Par ailleurs,
+$$
+\mathrm{\bf b}_\mathcal{I} = {\mathrm{\bf b}_r}_\mathcal{I} - {(\mathrm{\bf A} \mathrm{\bf u}_{\gamma}^h)}_ \mathcal{I} = {\mathrm{\bf b}_r}_\mathcal{I} - {\mathrm{\bf A}}_\mathcal{I, I} {\mathrm{\bf u}_{\gamma}^h}_ \mathcal{I}.
+$$
+Or, ${\mathrm{\bf u}_{\gamma}^h}_ \mathcal{I} = \mathrm{\bf 0}$ par définition, d'où $\mathrm{\bf b}_\mathcal{I} = {\mathrm{\bf b}_r}_\mathcal{I}$.
+Et,
+$$
+\mathrm{\bf b}_\mathcal{D} = {\mathrm{\bf b}_r}_\mathcal{D} - {(\mathrm{\bf A} \mathrm{\bf u}_{\gamma}^h)}_ \mathcal{D} = {\mathrm{\bf b}_r}_\mathcal{D} - {\mathrm{\bf A}}_\mathcal{D, D} {\mathrm{\bf u}_{\gamma}^h}_ \mathcal{D}.
+$$
+Mais, suite à l'application de la condition de Dirichlet précédemment, ${\mathrm{\bf A}}_\mathcal{D, D} = {\mathrm{\bf I}}_\mathcal{D, D}$ et ${\mathrm{\bf b}_r}_ \mathcal{D} = \mathrm{\bf 0}$, d'où $\mathrm{\bf b}_\mathcal{D} = {\mathrm{\bf u}_{\gamma}^h}_ \mathcal{D}$.
+En récrivant le système en $\mathrm{\bf u}_h$, nous nous ramenons à appliquer la condition de Dirichlet hétérogène du système $(\mathrm{P_{initial}})$ et nous récrivons le système $(\mathrm{P_{matriciel}})$ en :
+$$
+(\mathrm{P'_{matriciel}}) :
 \left(
 \begin{array}{c c}
   \mathrm{\bf A}_{\mathcal{I},\mathcal{I}} & \mathrm{\bf A}_{\mathcal{I},\mathcal{D}}\\
@@ -284,25 +304,20 @@ $$
 \right)
 \left(
 \begin{array}{c}
-  {\mathrm{\bf u}_r^h}_\mathcal{I}\\
-  {\mathrm{\bf u}_r^h}_\mathcal{D}
+  {\mathrm{\bf u}_h}_\mathcal{I}\\
+  {\mathrm{\bf u}_h}_\mathcal{D}
 \end{array}
 \right)  =   \left(
 \begin{array}{c}
   \mathrm{\bf b}_\mathcal{I}\\
-  \mathrm{\bf 0}
+  {\mathrm{\bf u}_{\gamma}^h}_\mathcal{D}
 \end{array}
 \right).
-$$
-Le système $(\mathrm{P_{matriciel}})$ se simplifie alors en :
-$$
-(\mathrm{P'_{matriciel}}) :
-\mathrm{\bf A}_{\mathcal{I},\mathcal{I}} {\mathrm{\bf u}_r^h}_\mathcal{I} = \mathrm{\bf b}_\mathcal{I}.
 $$
 
 ### Algorithme d'assemblage
 
-Nous récrivons la matrice $\mathrm{\bf A}$ sous la forme suivante et calculons les *contributions élémentaires*, qui vont s'ajouter petit à petit dans la matrice $\mathrm{\bf A}$ :
+Dans un premier temps, ne tenons pas compte de la condition de Dirichlet et écrivons l'assemblage dans un cas plus général. Nous récrivons la matrice $\mathrm{\bf A}$ sous la forme suivante et calculons les *contributions élémentaires*, qui vont s'ajouter petit à petit dans la matrice :
 $$
 \begin{aligned}
   \mathrm{\bf A}
@@ -310,16 +325,15 @@ $$
   & = \sum_{p\ =\ 1}^{N_t}\sum_{I\ =\ 1}^{N_s}\sum_{J\ =\ 1}^{N_s} \underbrace{\int_{K_p}\nabla \varphi_J \cdot\nabla \varphi_I}_{\text{contribution élémentaire}} \mathrm{\bf e}_I^\top\mathrm{\bf e}_J\\
 \end{aligned}
 $$
-où $\mathrm{\bf e}_I$ est le vecteur de la base canonique de $\mathbb{R}^{N_s}$. Idem pour $\mathrm{\bf b}$ :
+où $\mathrm{\bf e}_I$ est le vecteur de la base canonique de $\mathbb{R}^{N_s}$. Idem pour $\mathrm{\bf b}$,
 $$
 \begin{aligned}
   \mathrm{\bf b}
-  & = \sum_{I\ =\ 1}^{N_s} l(\varphi_I) \mathrm{\bf e}_I\\
-  & = \sum_{p\ =\ 1}^{N_t}\sum_{I\ =\ 1}^{N_s} \underbrace{- \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_I}_{\text{contribution élémentaire}} \mathrm{\bf e}_I\\
+  & = \sum_{I\ =\ 1}^{N_S} l(\varphi_I) \mathrm{\bf e}_I\\
+  & = \sum_{p\ =\ 1}^{N_t}\sum_{I\ =\ 1}^{N_S} \underbrace{- \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_I}_{\text{contribution élémentaire}} \mathrm{\bf e}_I\\
 \end{aligned}
 $$
-
-Afin de réduire le nombre de termes sommés, nous devons maintenant travailler localement dans chaque triangle. Pour cela, nous avons besoin d'introduire une numérotation locale de chaque sommet et utilisons une fonction $\mathrm{locToGlob}$ (*Local To Global*) permettant de basculer de l'indice local vers l'indice global telle que, pour $p \in \llbracket 1,N_t \rrbracket$ et $i \in \llbracket 1,3 \rrbracket$ :
+Par définition des fonctions $\varphi$, de nombreux termes des sommes sont nuls. Afin de réduire le nombre de termes sommés, nous devons maintenant travailler localement dans chaque triangle. Pour cela, nous avons besoin d'introduire une numérotation locale de chaque sommet et utilisons une fonction $\mathrm{locToGlob}$ (*Local To Global*) permettant de basculer de l'indice local vers l'indice global telle que, pour $p \in \llbracket 1,N_t \rrbracket$ et $i \in \llbracket 1,3 \rrbracket$ :
 $$\mathrm{locToGlob}\,(p,i) = I \iff \mathrm{s}_i^p = \mathrm{s}_I.$$
 Nous introduisons aussi les fonctions de forme locales :
 $$ \varphi_i^p = \varphi_{\mathrm{locToGlob}\,(p,i)}|_{K_p}.$$
@@ -330,7 +344,6 @@ $$
   \mathrm{\bf b} & = \sum_{p\ =\ 1}^{N_t}\sum_{i\ =\ 1}^{3} \underbrace{- \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_i^p}_{\text{contribution élémentaire}}\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}.
 \end{aligned}
 $$
-
 Voici le pseudo-code de l'algorithme d'assemblage :
 
 ```
@@ -391,7 +404,7 @@ avec $\mathrm{\bf B}_p = \left( \mathrm{\bf J}_p^\top\right)^{-1}$. Donc,
 $$
 \mathrm{\bf A} = \sum_{p=1}^{N_t}\sum_{i=1}^{3}\sum_{j=1}^{3} | K_p | (\nabla\widehat{\varphi}_j)^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}^\top\mathrm{\bf e}_{\mathrm{locToGlob}\,(p,j)}
 $$
-Par ailleurs, en notant,
+Remarquons que pour $\mathrm{\bf b}$, les termes à calculer sont les termes de $\mathrm{\bf b}_\mathcal{I}$ car les termes de $\mathrm{\bf u}_\gamma^h$ ont déjà été fixés. Par ailleurs, en notant,
 $$
 \mathcal{T}^h_{\mathcal{I}} := \{ K \in \mathcal{T}_h\ |\ K \cap (\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}) = \empty\}
 $$
@@ -399,61 +412,16 @@ l'ensemble des triangles qui ne sont pas en contact avec le bord $\Gamma_{\text{
 $$
 \mathrm{supp}\,(u_\gamma^h) \subseteq \mathcal{T}_h \backslash \mathcal{T}^h_{\mathcal{I}}.
 $$
-C'est-à-dire, $\forall I \in \llbracket 1, N_S \rrbracket,\forall K \in \mathcal{T}^h_{\mathcal{I}}, \mathrm{s}_I \in K \implies \mathrm{b}_I = 0$.
-
-**TODO: heureusement gamma rad et gamma fen ne se touchent pas, sinon des cas en plus**
-Si on se place sur un triangle du bord $\Gamma_{\text{Rad}} \cup \Gamma_{\text{Fen}}$, alors un triangle a soit ses trois sommets sur le bord, soit il n'en a que deux. Dans le premier cas, $u_\gamma^h$ est constante sur le triangle et donc son gradient est nul. Dans le second cas, on passe dans le triangle de référence $\widehat{K}$ où $\widehat{u_\gamma^h}$ est définie par :
-$$
-\widehat{u_\gamma^h} =
-\left\{
-\begin{aligned}
-  T (\xi + \eta), & \quad \text{si $\mathrm{s}_2$ et $\mathrm{s}_3$ sont à $T$}\\
-  T (1 - \xi), & \quad \text{si $\mathrm{s}_1$ et $\mathrm{s}_3$ sont à $T$}\\
-  T (1 - \eta), & \quad \text{si $\mathrm{s}_1$ et $\mathrm{s}_2$ sont à $T$}
-\end{aligned}
-\right.
-$$
-où $T \in \{T_c, T_f\}$ selon le bord considéré. Les gradients sont respectivement donnés par :
-$$
-\nabla \widehat{u_\gamma^h} =
-\begin{pmatrix}
-  T\\
-  T
-\end{pmatrix}
-,
-\quad
-\nabla \widehat{u_\gamma^h} =
-\begin{pmatrix}
-  -T\\
-  0
-\end{pmatrix},
-\quad
-\nabla \widehat{u_\gamma^h} =
-\begin{pmatrix}
-  0\\
-  -T
-\end{pmatrix}.
-$$
-Les *contributions élémentaires* des coefficients de $\mathrm{\bf b}$ se simplifient en :
-$$
-\begin{aligned}
-  \int_{K_p}\nabla u_\gamma^h \cdot\nabla \varphi_i^p
-  & = | \det(\mathrm{\bf J}_p) | \int_{\widehat{K}} \left( \nabla \widehat{u_\gamma^h} \right)^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla \widehat{\varphi}_i\\
-  &= | K_p | (\nabla \widehat{u_\gamma^h})^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i
-
-\end{aligned}
-$$
-Ainsi, sans tenir compte des triangles où les termes sont nuls, $\mathrm{\bf b}$ se récrit :
-$$
-\mathrm{\bf b} = - \sum_{p\ =\ 1}^{N_t}\sum_{i\ =\ 1}^{3} | K_p | (\nabla \widehat{u_\gamma^h})^\top \mathrm{\bf B}_p^\top \mathrm{\bf B}_p \nabla\widehat{\varphi}_i\ \mathrm{\bf e}_{\mathrm{locToGlob}\,(p,i)}.
-$$
+C'est-à-dire que $\forall K \in \mathcal{T}^h_{\mathcal{I}}, \forall \mathrm{s}_I \in K, I \in \llbracket 1, N_S \rrbracket, u_\gamma^h(\mathrm{s}_I) = 0 \implies u_\gamma^h|_K = 0 \implies \nabla u_\gamma^h|_K = 0 \implies \mathrm{b}_I = 0$.
 
 ## Implantation
 
-Pour les formats des matrices, nous avons utiliser des format Triplets, puis *COO* et *CSR*. Le premier format permet de construire la matrice au fur et à mesure. Le deuxième n'est utilisé que pour convertir le premier en le troisième. Ce dernier est utilisé pour la résolution du système linéaire.
+Pour les formats des matrices, nous avons utiliser les format Triplets, puis *COO* et *CSR*. Le premier format permet de construire la matrice au fur et à mesure. Le deuxième n'est utilisé que pour convertir le premier en le troisième. Ce dernier est utilisé pour la résolution du système linéaire.
 
-On utilise un attribut `id` qui est unique à chaque instance (pour une classe donnée) qui permet d'indicer les objets de manière globale. Il est utilisé dans l'assemblage et dans la condition de Dirichlet lorsqu'il faut passer de l'indice local d'un sommet à son indice global.
+On utilise un attribut `id` qui est unique à chaque instance de `Point` et qui permet de les indicer globalement. Il est utilisé dans l'assemblage et dans la condition de Dirichlet lorsqu'il faut passer de l'indice local d'un sommet à son indice global.
 
-Ici, nous n'avons pas eu besoin de calculer la matrice de masse (élémentaire) et de la mettre dans l'assemblage. Pour la matrice de rigidité élémentaire (qui est ici égale à la matrice $\mathrm{\bf A}$), nous avons utilisé la formule simplifiée présentée auparavant. Nous n'avons également pas eu besoin de faire de quadrature.
+Ici, nous n'avons pas eu besoin de calculer la matrice de masse (élémentaire) et de la mettre dans l'assemblage. Pour la matrice de rigidité élémentaire, nous avons utilisé la formule simplifiée présentée auparavant. Nous n'avons également pas eu besoin de faire de quadrature.
 
-Pour la condition de Dirichlet, nous devons donc rendre les lignes et colonnes associées aux degrés de liberté de Dirichlet, nulles, sauf sur la diagonale avec la valeur 1. Cette opération est effectuée après l'assemblage de la matrice. Pour cela, nous parcourons les nœuds I du domaine de Dirichlet. Puis, dans la liste des indices ligne de triplets, dès qu’une occurence à I est obtenu, la valeur de ce triplet est mise à 0. Il ne faut pas oublier, à la fin, d’ajouter un triplet (I,I,1) correspondant au terme diagonal et de modifier le coefficient b[I] = g(x,y).
+Pour la condition de Dirichlet, nous devons rendre les lignes et colonnes associées aux degrés de liberté de Dirichlet, nulles, sauf sur la diagonale avec la valeur 1. Cette opération est effectuée après l'assemblage de la matrice. Pour cela, nous parcourons les nœuds I du domaine de Dirichlet. Puis, dans la liste des indices ligne de triplets, dès qu’une occurence à I est obtenu, la valeur de ce triplet est mise à 0. Ensuite, nous ajoutons un triplet (I,I,1) correspondant au terme diagonal et modifions le coefficient b[I] = g(x,y).
+
+Le programme actuel n'est pas optimé et pourrait être amélioré.

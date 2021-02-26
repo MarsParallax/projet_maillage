@@ -116,8 +116,4 @@ class Triangle:
             the right-hand side vector
         """
         b = np.zeros((3))
-        for i in range(3):
-            BtB = np.dot(self.passage().T, self.passage())
-            BtB_dot_grad = np.dot(np.array([25, 25]).T, BtB)
-            b[i] = self.area()*np.dot(BtB_dot_grad, self.grad_phi_chap(i))
         return b
